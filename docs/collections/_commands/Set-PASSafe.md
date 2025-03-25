@@ -17,14 +17,14 @@ Updates a safe in the Vault
 ### Gen2-NumberOfDaysRetention (Default)
 ```
 Set-PASSafe -SafeName <String> [-NewSafeName <String>] [-Description <String>] [-location <String>]
- [-OLACEnabled <Boolean>] [-ManagingCPM <String>] -NumberOfDaysRetention <Int32> [-WhatIf] [-Confirm]
+ [-OLACEnabled <Boolean>] [-ManagingCPM <String>] [-NumberOfDaysRetention <Int32>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### Gen2-NumberOfVersionsRetention
 ```
 Set-PASSafe -SafeName <String> [-NewSafeName <String>] [-Description <String>] [-location <String>]
- [-OLACEnabled <Boolean>] [-ManagingCPM <String>] -NumberOfVersionsRetention <Int32> [-WhatIf] [-Confirm]
+ [-OLACEnabled <Boolean>] [-ManagingCPM <String>] [-NumberOfVersionsRetention <Int32>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
@@ -45,8 +45,6 @@ Set-PASSafe -SafeName <String> [-NewSafeName <String>] [-Description <String>] [
 ## DESCRIPTION
 Updates a single safe in the Vault.
 Manage Safe permission is required.
-All required properties should be sent in the request.
-Any properties set on the safe not included in the request will be cleared.
 
 ## EXAMPLES
 
@@ -60,15 +58,6 @@ Updates description and version retention on SAFE using Gen2 API
 Minimum required version 12.2
 
 ### EXAMPLE 2
-```
-Get-PASSafe -SafeName SAFE | Set-PASSafe -SafeName SAFE -NumberOfVersionsRetention 10
-```
-
-Updates version retention on SAFE using Gen2 API, maintaining all other properties.
-
-Minimum required version 12.2
-
-### EXAMPLE 3
 ```
 Set-PASSafe -SafeName SAFE -Description "New-Description" -NumberOfDaysRetention 10 -UseGen1API
 ```
@@ -169,19 +158,7 @@ Specify either this parameter or NumberOfDaysRetention.
 
 ```yaml
 Type: Int32
-Parameter Sets: Gen2-NumberOfVersionsRetention
-Aliases:
-
-Required: True
-Position: Named
-Default value: 0
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
-```
-
-```yaml
-Type: Int32
-Parameter Sets: Gen1-NumberOfVersionsRetention
+Parameter Sets: Gen2-NumberOfVersionsRetention, Gen1-NumberOfVersionsRetention
 Aliases:
 
 Required: False
@@ -194,25 +171,13 @@ Accept wildcard characters: False
 ### -NumberOfDaysRetention
 The number of days for which password versions are saved in the Safe.
 
-- Minimum Value: 1
+- Minimum Value: 0
 - Maximum Value: 3650
 Specify either this parameter or NumberOfVersionsRetention
 
 ```yaml
 Type: Int32
-Parameter Sets: Gen2-NumberOfDaysRetention
-Aliases:
-
-Required: True
-Position: Named
-Default value: 0
-Accept pipeline input: True (ByPropertyName)
-Accept wildcard characters: False
-```
-
-```yaml
-Type: Int32
-Parameter Sets: Gen1-NumberOfDaysRetention
+Parameter Sets: Gen2-NumberOfDaysRetention, Gen1-NumberOfDaysRetention
 Aliases:
 
 Required: False

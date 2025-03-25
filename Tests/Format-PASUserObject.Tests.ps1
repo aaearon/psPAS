@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -43,7 +53,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 					'UserName'   = 'SomeUser'
 					'FirstName'  = 'Some'
 					'LastName'   = 'User'
-					'ExpiryDate' = '10/31/2018'
+					'ExpiryDate' = $(Get-Date -Day 31 -Month 10 -Year 2018 -Hour 0 -Minute 0 -Second 0 -Millisecond 0)
 					'workStreet' = 'SomeStreet'
 					'homePage'   = 'www.geocities.com'
 					'faxNumber'  = '1979'

@@ -56,12 +56,33 @@ function New-PASDirectoryMapping {
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateRange(1, 3650)]
-		[int]$UserActivityLogPeriod
+		[int]$UserActivityLogPeriod,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[int]$UsedQuota,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[AllowEmptyCollection()]
+		[ValidateSet('PIMSU', 'PSM', 'PSMP', 'PVWA', 'WINCLIENT', 'PTA', 'PACLI', 'NAPI', 'XAPI', 'HTTPGW',
+			'EVD', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
+		[string[]]$AuthorizedInterfaces,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[boolean]$EnableENEWhenDisconnected
 
 	)
 
 	BEGIN {
-
+		Assert-VersionRequirement -SelfHosted
 	}#begin
 
 	PROCESS {
@@ -96,6 +117,14 @@ function New-PASDirectoryMapping {
 
 			}
 
+			{ $_ -match 'UsedQuota|AuthorizedInterfaces|EnableENEWhenDisconnected' } {
+
+				#v10.7
+				Assert-VersionRequirement -RequiredVersion 14.0
+				Continue
+
+			}
+
 			Default {
 
 				#v10.4
@@ -106,14 +135,14 @@ function New-PASDirectoryMapping {
 		}
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/"
+		$URI = "$($psPASSession.BaseURI)/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/"
 
 		$body = $boundParameters | ConvertTo-Json
 
 		if ($PSCmdlet.ShouldProcess($MappingName, 'Create Directory Mapping')) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
 			If ($null -ne $result) {
 

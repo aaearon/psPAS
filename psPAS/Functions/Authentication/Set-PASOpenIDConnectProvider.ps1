@@ -42,7 +42,7 @@ Function Set-PASOpenIDConnectProvider {
 		[string]$description,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateNotNullOrEmpty()]
@@ -56,7 +56,7 @@ Function Set-PASOpenIDConnectProvider {
 		[string]$jwkSet,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateLength(1, 100)]
@@ -71,7 +71,7 @@ Function Set-PASOpenIDConnectProvider {
 		[securestring]$clientSecret,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateSet('Basic', 'Post')]
@@ -99,7 +99,7 @@ Function Set-PASOpenIDConnectProvider {
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/Configuration/OIDC/Providers/$($id | Get-EscapedString)"
+		$URI = "$($psPASSession.BaseURI)/api/Configuration/OIDC/Providers/$($id | Get-EscapedString)"
 
 		#Get request parameters
 		$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove id
@@ -112,13 +112,18 @@ Function Set-PASOpenIDConnectProvider {
 
 		}
 
+		$OIDCProvider = Get-PASOpenIDConnectProvider -id $id
+		if ($null -ne $OIDCProvider) {
+			Format-PutRequestObject -InputObject $OIDCProvider -boundParameters $BoundParameters -ParametersToRemove id
+		}
+
 		#Create body of request
 		$body = $boundParameters | ConvertTo-Json
 
 		if ($PSCmdlet.ShouldProcess($id, 'Update OIDC Provider')) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $body
 
 			If ($null -ne $result) {
 

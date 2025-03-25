@@ -6,9 +6,9 @@
 
 # **psPAS: PowerShell Module for the CyberArk API**
 
-Use PowerShell to manage CyberArk via the PVWA REST API.
+Through the PVWA REST API, administer CyberArk PAS with PowerShell.
 
-Contains all published methods of the API up to CyberArk v12.6.
+Contains all of the documented API capabilities up to CyberArk v14.0.
 
 Docs: [https://pspas.pspete.dev](https://pspas.pspete.dev)
 
@@ -67,11 +67,11 @@ Docs: [https://pspas.pspete.dev](https://pspas.pspete.dev)
 
 ### Authenticate
 
-_It all starts with a **Logon**_
+_Everything begins with a **Logon**:_
 
-`New-PASSession` is used to send a logon request to the CyberArk API.
+To submit a logon request to the CyberArk API, use the psPAS `New-PASSession` command.
 
-On successful authentication `psPAS` uses the data which was provided for the request & also returned from the API for all subsequent operations.
+All subsequent operations are carried out by `psPAS` utilises the input data provided for the `New-PASSession` request (URL, Certificate), as well as data received from the API after successful authentication (Authentication Token, PVWA Version).
 
 #### CyberArk Authentication
 
@@ -113,8 +113,6 @@ xApprover_1 LDAP   EPVUser      False     False   False    False
 
 #### RADIUS Authentication
 
-##### Challenge Mode
-
 ````powershell
 $cred = Get-Credential
 
@@ -133,30 +131,6 @@ UserName Source UserTypeName AgentUser Expired Disabled Suspended
 DuoUser  LDAP   EPVUser      False     False   False    False
 ````
 
-##### Append Mode
-
-- Some 2FA solutions allow a One Time Passcode to be sent with the password.
-
-  - If an OTP is provided, it is sent to the API with the password, separated by a delimiter: "`$Password,$OTP`"
-
-````powershell
-$cred = Get-Credential
-
-PowerShell credential request
-Enter your credentials.
-User: DuoUser
-Password for user DuoUser: **********
-
-
-New-PASSession -Credential $cred -BaseURI https://pvwa.somedomain.com -type RADIUS -OTP 738458 -OTPMode Append
-
-Get-PASLoggedOnUser
-
-UserName Source UserTypeName AgentUser Expired Disabled Suspended
--------- ------ ------------ --------- ------- -------- ---------
-DuoUser  LDAP   EPVUser      False     False   False    False
-````
-
 #### SAML Authentication
 
 SAML SSO authentication using IWA and ADFS can be performed
@@ -165,9 +139,9 @@ SAML SSO authentication using IWA and ADFS can be performed
 New-PASSession -BaseURI $url -SAMLAuth
 ```
 
-Where IWA SSO is not possible, the [PS-SAML-Interactive](https://github.com/allynl93/PS-SAML-Interactive) module can be used to obtain the SAMLResponse from an authentication service.
+Where IWA SSO is not possible, the [PS-SAML-Interactive](https://github.com/allynl93/PS-SAML-Interactive) module can be used to get the SAMLResponse from an authentication service.
 
-SAMLResponse is then used to perform saml authentication.
+The SAMLResponse received from the IdP is sent to complete saml authentication to the API.
 
 ```powershell
 import-module -name 'C:\PS-SAML-Interactive.psm1'
@@ -180,14 +154,58 @@ $loginResponse = New-SAMLInteractive -LoginIDP $loginURL
 New-PASSession -SAMLAuth -concurrentSession $true -BaseURI $baseURL -SAMLResponse $loginResponse
 ```
 
-#### Shared Authentication with Client Certificate
+#### Certificate Authentication
 
-- If IIS is configured to require client certificates, `psPAS` will use any provided certificate details for the duration of the session.
+- Where PVWA/IIS requires client certificates, 'psPAS' will use any specified certificates for the duration of the session.
 
-````powershell
+PKI Authentication Example:
+```powershell
+Add-Type -AssemblyName System.Security
+# Get Valid Certs
+$MyCerts = [System.Security.Cryptography.X509Certificates.X509Certificate2[]](Get-ChildItem Cert:\CurrentUser\My)
+# Select Cert
+$Cert = [System.Security.Cryptography.X509Certificates.X509Certificate2UI]::SelectFromCollection(
+    $MyCerts,
+    'Choose a certificate',
+    'Choose a certificate',
+    'SingleSelection'
+) | select -First 1
+
+New-PASSession -Credential $cred -BaseURI $url -type PKI -Certificate $Cert
+```
+Shared Authentication Example:
+```powershell
 $Cert = "0E199489C57E666115666D6E9990C2ACABDB6EDB"
 New-PASSession -UseSharedAuthentication -BaseURI https://pvwa.somedomain.com -CertificateThumbprint $Cert
-````
+```
+
+#### Shared Services Authentication
+
+**Privilege Cloud Shared Services authentication flows require the pspete `IdentityCommand` module, available from the [Powershell Gallery](https://www.powershellgallery.com/packages/IdentityCommand) & [GitHub](https://github.com/pspete/IdentityCommand).**
+
+##### Identity User
+
+Provide Identity User credentials and tenant details for authentication to CyberArk Identity for Privilege Cloud Shared Services:
+
+```
+#using URL
+New-PASSession -IdentityTenantURL https://SomeTenantName.id.cyberark.cloud -PrivilegeCloudURL https://SomeTenant.privilegecloud.cyberark.cloud -Credential $Cred -IdentityUser
+```
+
+```
+#using subdomain
+New-PASSession -TenantSubdomain SomeTenantName -Credential $Cred -IdentityUser
+```
+
+##### Service User
+
+Provide tenant ID and non-interactive API User credentials for authentication via CyberArk Identity for Privilege Cloud Shared Services:
+
+```
+New-PASSession -TenantSubdomain YourPrivilegeCloudTenantID -Credential $ServiceUserCreds -ServiceUser
+```
+
+Consult the vendor documentation for guidance on setting up a dedicated API Service user for non-interactive API use.
 
 ### Basic Operations
 
@@ -781,19 +799,19 @@ A selection of psPAS sample scripts can be found in the [psPAS-Examples](https:/
 
 ## psPAS Functions
 
-Your version of CyberArk determines which functions of psPAS will be supported.
+This section lists the commands available in psPAS as well as any relevant version requirements.
 
-Check the below table to determine what is available for you to use.
+Depending on your version of CyberArk, different psPAS commands and parameters are available.
 
-The CyberArk Version listed is the minimum required to use the function.
+The most recent psPAS version should work with your particular CyberArk version and be able to be used with it.
 
-The module will attempt to confirm that your version of CyberArk meets the minimum
+The version requirements for certain parameters are described in greater detail in the command's documentation.
 
-version requirement (if you are using version 9.7+, and the function being invoked
+The module will take steps to verify that your version of CyberArk meets any psPAS command's minimum version requirement.
 
-requires version 9.8+).
+If version requirement criteria are not met, operations may be prevented.
 
-Check the output of `Get-Help` for the `psPAS` functions for further details of available parameters and version requirements.
+To learn more about the parameters that may be used and the required version, consult the output of the 'Get-Help' command for the 'psPAS' functions.
 
 Click the below dropdown to view the current list of psPAS functions and their minimum version requirements:
 <details>
@@ -944,8 +962,74 @@ Click the below dropdown to view the current list of psPAS functions and their m
 [`Set-PASGroup`][Set-PASGroup]                                                           |**12.0**            |Update CyberArk groups
 [`Get-PASPlatformSummary`][Get-PASPlatformSummary]                                       |**12.2**            |Get information on platform system types
 [`Enable-PASUser`][Enable-PASUser]                                                       |**12.6**            |Enable CyberArk Users
-[`Disable-PASUser`][Enable-PASUser]                                                      |**12.6**            |Disable CyberArk Users
+[`Disable-PASUser`][Disable-PASUser]                                                     |**12.6**            |Disable CyberArk Users
+[`Publish-PASDiscoveredAccount`][Publish-PASDiscoveredAccount]                           |**12.6**            |Onboard Discovered Accounts
+[`Get-PASLinkedAccount`][Get-PASLinkedAccount]                                           |**12.2**            |Get details of linked accounts
+[`Get-PASLinkedGroup`][Get-PASLinkedGroup]                                               |**12.2**            |Get details of linked groups
+[`Add-PASPersonalAdminAccount`][Add-PASPersonalAdminAccount]                             |**12.6**            |Add Personal Admin Account (Privilege Cloud Only).
+[`Get-PASPTAGlobalCatalog`][Get-PASPTAGlobalCatalog]                                     |**13.0**            |Get Global Catalog connectivity details for PTA.
+[`Add-PASPTAGlobalCatalog`][Add-PASPTAGlobalCatalog]                                     |**13.0**            |Add Global Catalog connectivity details to PTA.
+[`Get-PASUserTypeInfo`][Get-PASUserTypeInfo]                                             |**13.2**            |Get User Type Info
+[`Get-PASPTARiskEvent`][Get-PASPTARiskEvent]                                             |**13.2**            |Get PTA Risk Events
+[`Set-PASPTARiskEvent`][Set-PASPTARiskEvent]                                             |**13.2**            |Update PTA Risk Events
+[`Get-PASPTARiskSummary`][Get-PASPTARiskSummary]                                         |**13.2**            |Get PTA Risk Summary
+[`New-PASRequestObject`][New-PASRequestObject]                                           |**---**             |Format an object to include in an request list
+[`Add-PASPTAIncludedTarget`][Add-PASPTAIncludedTarget]                                   |**14.0**            |Includes a PTA Monitored Target
+[`Add-PASPTAExcludedTarget`][Add-PASPTAExcludedTarget]                                   |**14.0**            |Excludes a PTA Monitored Target
+[`Add-PASPTAPrivilegedGroup`][Add-PASPTAPrivilegedGroup]                                 |**14.0**            |Configures a PTA Privileged Group
+[`Add-PASPTAPrivilegedUser`][Add-PASPTAPrivilegedUser]                                   |**14.0**            |Configures a PTA Privileged User
+[`Get-PASPTAExcludedTarget`][Get-PASPTAExcludedTarget]                                   |**14.0**            |Get PTA Excluded Target
+[`Get-PASPTAIncludedTarget`][Get-PASPTAIncludedTarget]                                   |**14.0**            |Get PTA Included target
+[`Get-PASPTAPrivilegedGroup`][Get-PASPTAPrivilegedGroup]                                 |**14.0**            |Get PTA Privileged Group
+[`Get-PASPTAPrivilegedUser`][Get-PASPTAPrivilegedUser]                                   |**14.0**            |Get PTA Privileged User
+[`Remove-PASPTAExcludedTarget`][Remove-PASPTAExcludedTarget]                             |**14.0**            |Remove PTA Excluded Target
+[`Remove-PASPTAIncludedTarget`][Remove-PASPTAIncludedTarget]                             |**14.0**            |Remove PTA Included Target
+[`Remove-PASPTAPrivilegedGroup`][Remove-PASPTAPrivilegedGroup]                           |**14.0**            |Remove PTA Privileged Group
+[`Remove-PASPTAPrivilegedUser`][Remove-PASPTAPrivilegedUser]                             |**14.0**            |Remove PTA Privileged User
+[`Set-PASIPAllowList`][Set-PASIPAllowList]                                               |**P Cloud Only**    |Set P Cloud IP Allow List
+[`Get-PASIPAllowList`][Get-PASIPAllowList]                                               |**P Cloud Only**    |Get P Cloud IP Allow List
+[`Get-PASBYOKConfig`][Get-PASBYOKConfig]                                                 |**P Cloud Only**    |Get P Cloud BYOK Config
+[`Publish-PASDiscoveredLocalAccount`][Publish-PASDiscoveredLocalAccount]                 |**P Cloud Only**    |Publish P Cloud Discovered Local Account
+[`Remove-PASDiscoveredLocalAccount`][Remove-PASDiscoveredLocalAccount]                   |**P Cloud Only**    |Delete  P Cloud Discovered Local Account
+[`Get-PASDiscoveredLocalAccountActivity`][Get-PASDiscoveredLocalAccountActivity]         |**P Cloud Only**    |Get  P Cloud Discovered Local Account Activity
+[`Get-PASDiscoveredLocalAccount`][Get-PASDiscoveredLocalAccount]                         |**P Cloud Only**    |Get  P Cloud Discovered Local Account
+[`Clear-PASDiscoveredLocalAccount`][Clear-PASDiscoveredLocalAccount]                     |**P Cloud Only**    |Clear all  P Cloud Discovered Local Accounts
+[`Add-PASDiscoveredLocalAccount`][Add-PASDiscoveredLocalAccount]                         |**P Cloud Only**    |Add  P Cloud Discovered Local Account
 
+[Get-PASIPAllowList]:/psPAS/Functions/IPALlowList/Get-PASIPAllowList
+[Set-PASIPAllowList]:/psPAS/Functions/IPALlowList/Set-PASIPAllowList
+[Get-PASBYOKConfig]:/psPAS/Functions/BYOK/Get-PASBYOKConfig
+[Publish-PASDiscoveredLocalAccount]:/psPAS/Functions/Accounts/Publish-PASDiscoveredLocalAccount
+[Get-PASDiscoveredLocalAccountActivity]:/psPAS/Functions/Accounts/Get-PASDiscoveredLocalAccountActivity
+[Get-PASDiscoveredLocalAccount]:/psPAS/Functions/Accounts/Get-PASDiscoveredLocalAccount
+[Clear-PASDiscoveredLocalAccount]:/psPAS/Functions/Accounts/Clear-PASDiscoveredLocalAccount
+[Add-PASDiscoveredLocalAccount]:/psPAS/Functions/Accounts/Add-PASDiscoveredLocalAccount
+[Remove-PASDiscoveredLocalAccount]:/psPAS/Functions/Accounts/Remove-PASDiscoveredLocalAccount
+[Add-PASPTAExcludedTarget]:/psPAS/Functions/EventSecurity/Add-PASPTAExcludedTarget.ps1
+[Add-PASPTAIncludedTarget]:/psPAS/Functions/EventSecurity/Add-PASPTAIncludedTarget.ps1
+[Add-PASPTAPrivilegedGroup]:/psPAS/Functions/EventSecurity/Add-PASPTAPrivilegedGroup.ps1
+[Add-PASPTAPrivilegedUser]:/psPAS/Functions/EventSecurity/Add-PASPTAPrivilegedUser.ps1
+[Get-PASPTAExcludedTarget]:/psPAS/Functions/EventSecurity/Get-PASPTAExcludedTarget.ps1
+[Get-PASPTAIncludedTarget]:/psPAS/Functions/EventSecurity/Get-PASPTAIncludedTarget.ps1
+[Get-PASPTAPrivilegedGroup]:/psPAS/Functions/EventSecurity/Get-PASPTAPrivilegedGroup.ps1
+[Get-PASPTAPrivilegedUser]:/psPAS/Functions/EventSecurity/Get-PASPTAPrivilegedUser.ps1
+[Remove-PASPTAExcludedTarget]:/psPAS/Functions/EventSecurity/Remove-PASPTAExcludedTarget.ps1
+[Remove-PASPTAIncludedTarget]:/psPAS/Functions/EventSecurity/Remove-PASPTAIncludedTarget.ps1
+[Remove-PASPTAPrivilegedGroup]:/psPAS/Functions/EventSecurity/Remove-PASPTAPrivilegedGroup.ps1
+[Remove-PASPTAPrivilegedUser]:/psPAS/Functions/EventSecurity/Remove-PASPTAPrivilegedUser.ps1
+[New-PASRequestObject]:/psPAS/Functions/Requests/New-PASRequestObject.ps1
+[Get-PASUserTypeInfo]:/psPAS/Functions/User/Get-PASUserTypeInfo.ps1
+[Get-PASPTARiskEvent]:/psPAS/Functions/EventSecurity/Get-PASPTARiskEvent.ps1
+[Set-PASPTARiskEvent]:/psPAS/Functions/EventSecurity/Set-PASPTARiskEvent.ps1
+[Get-PASPTARiskSummary]:/psPAS/Functions/EventSecurity/Get-PASPTARiskSummary.ps1
+[Get-PASPTAGlobalCatalog]:/psPAS/Functions/EventSecurity/Get-PASPTAGlobalCatalog.ps1
+[Add-PASPTAGlobalCatalog]:/psPAS/Functions/EventSecurity/Add-PASPTAGlobalCatalog.ps1
+[Disable-PASUser]:/psPAS/Functions/User/Disable-PASUser.ps1
+[Enable-PASUser]:/psPAS/Functions/User/Enable-PASUser.ps1
+[Get-PASLinkedAccount]:/psPAS/Functions/Accounts/Get-PASLinkedAccount.ps1
+[Get-PASLinkedGroup]:/psPAS/Functions/Accounts/Get-PASLinkedGroup.ps1
+[Add-PASPersonalAdminAccount]:/psPAS/Functions/Accounts/Add-PASPersonalAdminAccount.ps1
+[Publish-PASDiscoveredAccount]:/psPAS/Functions/Accounts/Publish-PASDiscoveredAccount.ps1
 [Get-PASPlatformSummary]:/psPAS/Functions/Platforms/Get-PASPlatformSummary.ps1
 [Add-PASOpenIDConnectProvider]:/psPAS/Functions/Authentication/Add-PASOpenIDConnectProvider.ps1
 [Get-PASOpenIDConnectProvider]:/psPAS/Functions/Authentication/Get-PASOpenIDConnectProvider.ps1
@@ -1097,54 +1181,63 @@ Click the below dropdown to view the current list of psPAS functions and their m
 ### Prerequisites
 
 - PowerShell Core, or Windows Powershell v5 (minimum)
-- CyberArk PAS REST API/Web Service
-- A user with which to authenticate, with appropriate Vault/Safe permissions.
+- CyberArk PAS REST API/PVWA Web Service (available and accessible over HTTPS using TLS 1.2)
+- A user who can authenticate and has the necessary Vault/Safe permissions.
 
 ### Install Options
 
-Use one of the following methods:
+Users can download psPAS from GitHub or the PowerShell Gallery.
+
+Choose any of the following ways to download the module and install it:
 
 #### Option 1: Install from PowerShell Gallery
 
-**PowerShell 5.0 or above must be used**
+This is the easiest and most popular way to install the module.
 
-This is the simplest & preferred method for installation of the module.
+**PowerShell 5.0 or above** must be used to download the module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/psPAS/).
 
-To install the module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/psPAS/), </br>
-from a PowerShell prompt, run:
+1. Open a PowerShell prompt
 
-`Install-Module -Name psPAS -Scope CurrentUser`
+2. Execute the following command:
+
+```powershell
+Install-Module -Name psPAS -Scope CurrentUser
+```
 
 #### Option 2: Manual Install
 
-You can manually copy the module files to one of your powershell module folders.
+The module files can be manually copied to one of your PowerShell module directories.
 
-Find your PowerShell Module Paths with the following command:
+Use the following command to get the paths to your local PowerShell module folders:
 
-`$env:PSModulePath.split(';')`
+```powershell
 
-The module files should be placed in a folder named `psPAS` in one of the listed locations.
+$env:PSModulePath.split(';')
+
+```
+
+The module files must be placed in one of the listed directories, in a folder called `psPAS`.
 
 More: [about_PSModulePath](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_psmodulepath)
 
-There are multiple options for downloading the module files:
+The module files are available to download using a variety of methods:
 
 ##### PowerShell Gallery
 
-- Download from the module [PowerShell Gallery](https://www.powershellgallery.com/packages/psPAS/):
+- Download from the module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/psPAS/):
   - Run the PowerShell command `Save-Module -Name psPAS -Path C:\temp`
   - Copy the `C:\temp\psPAS` folder to your "Powershell Modules" directory of choice.
 
 ##### psPAS Release
 
-- [Download the latest release](https://github.com/pspete/psPAS/releases/latest)
+- [Download the latest GitHub release](https://github.com/pspete/psPAS/releases/latest)
   - Unblock & Extract the archive
   - Rename the extracted `psPAS-v#.#.#` folder to `psPAS`
   - Copy the `psPAS` folder to your "Powershell Modules" directory of choice.
 
 ##### psPAS Branch
 
-- [Download the ```master branch```](https://github.com/pspete/psPAS/archive/master.zip)
+- [Download ```GitHub Branch```](https://github.com/pspete/psPAS/archive/master.zip)
   - Unblock & Extract the archive
   - Copy the `psPAS` (`\<Archive Root>\psPAS-master\psPAS`) folder to your "Powershell Modules" directory of choice.
 
@@ -1220,6 +1313,17 @@ Priority support could be considered for <a href="https://github.com/sponsors/ps
 
 Hat Tips:
 
+**Joe Garcia** ([infamousjoeg](https://github.com/infamousjoeg))
+for the unofficial API documentation, general API wizardry & knowledge sharing.
+
+**Jesse McWilliams**
+([JesseMcWilliamss](https://github.com/JesseMcWilliams))
+For the information needed to add PKIPN authentication into `New-PASSession`
+
+**Wojciech Ossowski**
+([Qrelis](https://github.com/Qrelis))
+For sharing the details of the account unlock API.
+
 **Allyn Lindsay**
 ([allynl93](https://github.com/allynl93))
 for [PS-SAML-Interactive](https://github.com/allynl93/PS-SAML-Interactive)
@@ -1230,9 +1334,6 @@ For the JSON formatting assistance.
 
 **Warren Frame**
 ([RamblingCookieMonster](https://github.com/RamblingCookieMonster)) for [Add-ObjectDetail.ps1](https://github.com/RamblingCookieMonster/PowerShell/blob/master/Add-ObjectDetail.ps1).
-
-**Joe Garcia** ([infamousjoeg](https://github.com/infamousjoeg))
-for the unofficial API documentation.
 
 Chapeau!
 

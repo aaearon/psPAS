@@ -6,6 +6,8 @@ main:
     url: commands/
   - title: "Install"
     url: /docs/install/
+  - title: "Articles"
+    url: /articles/
   - title: "About"
     url: /about/
 
@@ -123,6 +125,24 @@ commands:
         url: /commands/Set-PASLinkedAccount
       - title: "Clear-PASLinkedAccount"
         url: /commands/Clear-PASLinkedAccount
+      - title: "Get-PASLinkedAccount"
+        url: /commands/Get-PASLinkedAccount
+      - title: "Publish-PASDiscoveredAccount"
+        url: /commands/Publish-PASDiscoveredAccount
+      - title: "Add-PASPersonalAdminAccount"
+        url: /commands/Add-PASPersonalAdminAccount
+      - title: "Publish-PASDiscoveredLocalAccount"
+        url: /commands/Publish-PASDiscoveredLocalAccount
+      - title: "Get-PASDiscoveredLocalAccountActivity"
+        url: /commands/Get-PASDiscoveredLocalAccountActivity
+      - title: "Get-PASDiscoveredLocalAccount"
+        url: /commands/Get-PASDiscoveredLocalAccount
+      - title: "Clear-PASDiscoveredLocalAccount"
+        url: /commands/Clear-PASDiscoveredLocalAccount
+      - title: "Add-PASDiscoveredLocalAccount"
+        url: /commands/Add-PASDiscoveredLocalAccount
+      - title: "Remove-PASDiscoveredLocalAccount"
+        url: /commands/Remove-PASDiscoveredLocalAccount
 
   - title: "Applications"
     children:
@@ -166,6 +186,16 @@ commands:
         url: /commands/Get-PASPTARemediation
       - title: "Set-PASPTARemediation"
         url: /commands/Set-PASPTARemediation
+      - title: "Add-PASPTAGlobalCatalog"
+        url: /commands/Add-PASPTAGlobalCatalog
+      - title: "Get-PASPTAGlobalCatalog"
+        url: /commands/Get-PASPTAGlobalCatalog
+      - title: "Get-PASPTARiskEvent"
+        url: /commands/Get-PASPTARiskEvent
+      - title: "Set-PASPTARiskEvent"
+        url: /commands/Set-PASPTARiskEvent
+      - title: "Get-PASPTARiskSummary"
+        url: /commands/Get-PASPTARiskSummary
 
   - title: "General"
     children:
@@ -279,6 +309,8 @@ commands:
         url: /commands/New-PASRequest
       - title: "Remove-PASRequest"
         url: /commands/Remove-PASRequest
+      - title: "New-PASRequestObject"
+        url: /commands/New-PASRequestObject
 
   - title: "Safes"
     children:
@@ -354,6 +386,20 @@ commands:
         url: /commands/Enable-PASUser
       - title: "Disable-PASUser"
         url: /commands/Disable-PASUser
+      - title: "Get-PASUserTypeInfo"
+        url: /commands/Get-PASUserTypeInfo
+
+  - title: "BYOK"
+    children:
+      - title: "Get-PASBYOKConfig"
+        url: /commands/Get-PASBYOKConfig
+
+  - title: "IP Allow List"
+    children:
+      - title: "Get-PASIPAllowList"
+        url: /commands/Get-PASIPAllowList
+      - title: "Set-PASIPAllowList"
+        url: /commands/Set-PASIPAllowLists
 
 # documentation links
 docs:
@@ -413,3 +459,7 @@ docs:
         url: https://www.powershellgallery.com/packages/VaultControl/
       - title: "PSMPSession"
         url: https://www.powershellgallery.com/packages/PSMPSession/
+      - title: "IdentityCommand"
+        url: https://www.powershellgallery.com/packages/IdentityCommand/
+      - title: "IdentityCommand.DPA"
+        url: https://www.powershellgallery.com/packages/IdentityCommand.DPA/

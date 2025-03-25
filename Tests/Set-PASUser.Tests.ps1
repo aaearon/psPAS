@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -82,7 +92,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/WebServices/PIMServices.svc/Users/SomeUser"
+					$URI -eq "$($Script:psPASSession.BaseURI)/WebServices/PIMServices.svc/Users/SomeUser"
 
 				} -Times 1 -Exactly -Scope It
 
@@ -105,15 +115,33 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 				}
 
 				$InputObj = [pscustomobject]@{
-					'id'          = 1234
-					'UserName'    = 'SomeUser'
-					'NewPassword' = $('P_Password' | ConvertTo-SecureString -AsPlainText -Force)
-					'FirstName'   = 'Some'
-					'LastName'    = 'User'
-					'ExpiryDate'  = '10/31/2018'
-					'workStreet'  = 'SomeStreet'
-					'homePage'    = 'www.geocities.com'
-					'faxNumber'   = '1979'
+					'id'            = 1234
+					'UserName'      = 'SomeUser'
+					'NewPassword'   = $('P_Password' | ConvertTo-SecureString -AsPlainText -Force)
+					'ExpiryDate'    = '10/31/2018'
+					'workStreet'    = 'SomeStreet'
+					#'homePage'                     = 'www.geocities.com'
+					'faxNumber'     = '1979'
+					#'userActivityLogRetentionDays' = 30
+					'loginFromHour' = 8
+					'loginToHour'   = 18
+
+				}
+
+				Mock Get-PASUser -MockWith {
+					[pscustomobject]@{
+						'id'                           = 1234
+						'UserName'                     = 'SomeUser'
+						'FirstName'                    = 'Some'
+						'LastName'                     = 'User'
+						'ExpiryDate'                   = $null
+						'workStreet'                   = $null
+						'homePage'                     = 'www.geocities.com'
+						'faxNumber'                    = $null
+						'userActivityLogRetentionDays' = 30
+						'loginFromHour'                = $null
+						'loginToHour'                  = $null
+					}
 
 				}
 
@@ -131,7 +159,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/api/Users/1234"
+					$URI -eq "$($Script:psPASSession.BaseURI)/api/Users/1234"
 
 				} -Times 1 -Exactly -Scope It
 
@@ -141,6 +169,10 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter { $Method -match 'PUT' } -Times 1 -Exactly -Scope It
 
+			}
+
+			It 'gets existing user settings' {
+				Assert-MockCalled Get-PASUser -ParameterFilter { $id -eq 1234 } -Times 1 -Exactly -Scope It
 			}
 
 			It 'sends request with expected body' {
@@ -155,11 +187,39 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			}
 
+			It 'sends request with expected existing personal details' {
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).personalDetails.LastName -eq 'User'
+
+				} -Times 1 -Exactly -Scope It
+
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).personalDetails.FirstName -eq 'Some'
+
+				} -Times 1 -Exactly -Scope It
+			}
+
+			It 'sends request with expected existing internet details' {
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).internet.homepage -eq 'www.geocities.com'
+
+				} -Times 1 -Exactly -Scope It
+			}
+
 			It 'throws error if version requirement not met' {
-				$Script:ExternalVersion = '1.0'
+				$psPASSession.ExternalVersion = '1.0'
 
 				{ $InputObj | Set-PASUser } | Should -Throw
-				$Script:ExternalVersion = '0.0'
+				$psPASSession.ExternalVersion = '0.0'
 
 			}
 

@@ -3,7 +3,7 @@ function New-PASSession {
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Gen2')]
 	param(
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipeline = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
@@ -24,8 +24,152 @@ function New-PASSession {
 			ValueFromPipeline = $true,
 			ParameterSetName = 'Gen1Radius'
 		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-ServiceUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-ServiceUser'
+		)]
 		[ValidateNotNullOrEmpty()]
 		[PSCredential]$Credential,
+
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-ServiceUser'
+		)]
+		[string]$TenantSubdomain,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1Radius'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2Radius'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1SAML'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2SAML'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'shared'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'integrated'
+		)]
+		[string]$BaseURI,
+
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-ServiceUser'
+		)]
+		[string]$IdentityTenantURL,
+
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-ServiceUser'
+		)]
+		[string]$PrivilegeCloudURL,
+
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-IdentityUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-IdentityUser'
+		)]
+		[switch]$IdentityUser,
+
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-Subdomain-ServiceUser'
+		)]
+		[Parameter(
+			Mandatory = $true,
+			ValueFromPipeline = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ISPSS-URL-ServiceUser'
+		)]
+		[switch]$ServiceUser,
 
 		[parameter(
 			Mandatory = $true,
@@ -110,7 +254,7 @@ function New-PASSession {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2Radius'
 		)]
-		[ValidateSet('CyberArk', 'LDAP', 'Windows', 'RADIUS')]
+		[ValidateSet('CyberArk', 'LDAP', 'Windows', 'RADIUS', 'PKI', 'PKIPN')]
 		[string]$type = 'CyberArk',
 
 		[Parameter(
@@ -154,7 +298,7 @@ function New-PASSession {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen1Radius'
 		)]
-		[ValidateLength(1, 1)]
+		[AllowEmptyString()]
 		[string]$OTPDelimiter,
 
 		[Parameter(
@@ -222,13 +366,6 @@ function New-PASSession {
 		[int]$connectionNumber,
 
 		[parameter(
-			Mandatory = $true,
-			ValueFromPipeline = $false,
-			ValueFromPipelinebyPropertyName = $true
-		)]
-		[string]$BaseURI,
-
-		[parameter(
 			Mandatory = $false,
 			ValueFromPipeline = $false,
 			ValueFromPipelinebyPropertyName = $true
@@ -267,7 +404,17 @@ function New-PASSession {
 
 	BEGIN {
 
-		$Uri = "$baseURI/$PVWAAppName"
+		if ($baseURI) {
+
+			#Ensure URL is in expected format
+			#Remove trailing space and PasswordVault if provided in BaseUri
+			$baseURI = $baseURI -replace '/$', ''
+			$baseURI = $baseURI -replace '/PasswordVault$', ''
+			#Build URL
+			$Uri = "$baseURI/$PVWAAppName"
+
+		}
+
 		#Hashtable to hold Logon Request
 		$LogonRequest = @{ }
 
@@ -301,6 +448,37 @@ function New-PASSession {
 
 		Switch ($PSCmdlet.ParameterSetName) {
 
+			( { $PSItem -match '^ISPSS-URL' } ) {
+
+				#Ensure URLs are in expected format
+				#Remove trailing space and PasswordVault (if provided in PrivilegeCloudURL)
+				$IdentityTenantURL = $IdentityTenantURL -replace '/$', ''
+				$PrivilegeCloudURL = $PrivilegeCloudURL -replace '/$', ''
+				$PrivilegeCloudURL = $PrivilegeCloudURL -replace '/PasswordVault$', ''
+
+			}
+
+			( { $PSItem -match '^ISPSS-SubDomain' } ) {
+
+				$SharedServicesURLs = Find-SharedServicesURL -subdomain $TenantSubdomain
+
+				$IdentityTenantURL = $SharedServicesURLs | Select-Object -ExpandProperty identity_user_portal | Select-Object -ExpandProperty api
+				$PrivilegeCloudURL = $SharedServicesURLs | Select-Object -ExpandProperty pcloud | Select-Object -ExpandProperty api
+
+			}
+
+			( { $PSItem -match '^ISPSS-.*-.*User$' } ) {
+
+				#IdentityUser/ServiceUser LogonRequest for New-IDSession/New-IDPlatformToken
+				$LogonRequest['Uri'] = $IdentityTenantURL
+				$LogonRequest['Credential'] = $Credential
+
+				#URL for P Cloud API Operations
+				$Uri = "${PrivilegeCloudURL}/$PVWAAppName"
+
+				break
+			}
+
 			'integrated' {
 
 				$LogonRequest['Uri'] = "$Uri/api/Auth/Windows/Logon"  #hardcode Windows for integrated auth
@@ -314,6 +492,8 @@ function New-PASSession {
 			}
 
 			'shared' {
+
+				Assert-VersionRequirement -SelfHosted
 
 				$LogonRequest['Uri'] = "$Uri/WebServices/auth/Shared/RestfulAuthenticationService.svc/Logon"
 				break
@@ -377,10 +557,28 @@ function New-PASSession {
 				$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove Credential, SkipVersionCheck, SkipCertificateCheck,
 				UseDefaultCredentials, CertificateThumbprint, BaseURI, PVWAAppName, OTP, type, OTPMode, OTPDelimiter, RadiusChallenge, Certificate
 
-				#Add user name from credential object
-				$boundParameters['username'] = $($Credential.UserName)
-				#Add decoded password value from credential object
-				$boundParameters['password'] = $($Credential.GetNetworkCredential().Password)
+				#deal with newPassword SecureString
+				If ($PSBoundParameters.ContainsKey('newPassword')) {
+
+					#Include decoded password in request
+					$boundParameters['newPassword'] = $(ConvertTo-InsecureString -SecureString $newPassword)
+
+				}
+
+				if ($type -ne 'PKIPN') {
+
+					if ($PSBoundParameters.Keys.Contains('Credential')) {
+						#Add user name from credential object
+						$boundParameters['username'] = $($Credential.UserName)
+						#Add decoded password value from credential object
+						$boundParameters['password'] = $($Credential.GetNetworkCredential().Password)
+					}
+
+				} Else {
+					#PKIPN Auth
+					$boundParameters['secureMode'] = $true
+					$boundParameters['type'] = 'pkipn'
+				}
 
 				#RADIUS Auth
 				If ($PSCmdlet.ParameterSetName -match 'Radius$') {
@@ -412,19 +610,11 @@ function New-PASSession {
 
 							#Send OTP first + then Password
 							$boundParameters['password'] = $OTP
-							$OTP = $($Credential.GetNetworkCredential().Password)
+							$($Credential.GetNetworkCredential().Password) | Set-Variable -Name OTP
 
 						}
 
 					}
-
-				}
-
-				#deal with newPassword SecureString
-				If ($PSBoundParameters.ContainsKey('newPassword')) {
-
-					#Include decoded password in request
-					$boundParameters['newPassword'] = $(ConvertTo-InsecureString -SecureString $newPassword)
 
 				}
 
@@ -441,29 +631,63 @@ function New-PASSession {
 
 			try {
 
-				#Send Logon Request
-				$PASSession = Invoke-PASRestMethod @LogonRequest
+				switch ($PSCmdlet.ParameterSetName) {
+					( { $PSItem -match '^ISPSS' } ) {
+						#Check IdentityCommand module available
+						if (-not (Get-Module IdentityCommand)) {
+							try { Import-Module IdentityCommand -ErrorAction Stop }
+							catch { throw 'Failed to import IdentityCommand: Install the IdentityCommand Module and try again.' }
+						}
+					}
+					( { $PSItem -match '^ISPSS-.*-IdentityUser$' } ) {
+						#Perform Identity User Authentication using IdentityCommand module
+						$PASSession = New-IDSession -tenant_url $LogonRequest['Uri'] -Credential $LogonRequest['Credential']
+						break
+					}
+					( { $PSItem -match '^ISPSS-.*-ServiceUser$' } ) {
+						#Perform Identity User Authentication using IdentityCommand module
+						$PASSession = New-IDPlatformToken -tenant_url $LogonRequest['Uri'] -Credential $LogonRequest['Credential']
+						break
+					}
+					default {
+						#Send Logon Request
+						$PASSession = Invoke-PASRestMethod @LogonRequest
+						break
+					}
+				}
 
 				If ($null -ne $PASSession.UserName) {
 
 					#*$PASSession is expected to be a string value
-					#*For IIS Windows auth:
-					#*An object with a username property can be returned if a secondary authentication is required
+					#*For IIS Windows/PKI auth:
+					#*An object with a username property will be returned if a secondary authentication is required
 
-					If ($PSCmdlet.ParameterSetName -match 'Radius$') {
+					#Use WebSession from initial request
+					$LogonRequest.Remove('SessionVariable')
+					$LogonRequest['WebSession'] = $psPASSession.WebSession
 
-						#If RADIUS parameters are specified
-						#Prepare RADIUS auth request
-						$LogonRequest['Uri'] = "$Uri/api/Auth/RADIUS/Logon"
+					#Prepare auth request
+					switch ( $true ) {
 
-						#Use WebSession from initial request
-						$LogonRequest.Remove('SessionVariable')
-						$LogonRequest['WebSession'] = $Script:WebSession
+						($PSCmdlet.ParameterSetName -match 'Radius$') {
 
-						#Submit initial RADIUS auth request
-						$PASSession = Invoke-PASRestMethod @LogonRequest
+							#RADIUS Secondary auth
+							$LogonRequest['Uri'] = "$Uri/api/Auth/RADIUS/Logon"
+							break
+						}
+
+						($type -eq 'PKI') {
+
+							#LDAP Secondary auth
+							$LogonRequest['Uri'] = "$Uri/api/Auth/LDAP/Logon"
+							break
+
+						}
 
 					}
+
+					#Submit secondary auth request
+					$PASSession = Invoke-PASRestMethod @LogonRequest
 
 				}
 
@@ -480,7 +704,7 @@ function New-PASSession {
 
 					#Use WebSession from initial request
 					$LogonRequest.Remove('SessionVariable')
-					$LogonRequest['WebSession'] = $Script:WebSession
+					$LogonRequest['WebSession'] = $psPASSession.WebSession
 
 					#Collect values required to respond to the challenge
 					$RADIUSResponse = @{}
@@ -505,41 +729,72 @@ function New-PASSession {
 				#If Logon Result
 				If ($PASSession) {
 
-					If ($null -ne $PASSession.UserName) {
+					switch ($PASSession) {
 
-						throw "No Session Token for user $($PASSession.UserName)"
+						( { $null -ne $PSItem.UserName } ) {
+
+							throw "No Session Token for user $($PASSession.UserName)"
+
+						}
+
+						( { $null -ne $PSItem.access_token } ) {
+
+							#Shared Service access_token.
+							$CyberArkLogonResult = "$($PASSession.token_type) $($PASSession.access_token)"
+
+							#Make the IdentityCommand WebSession available in the psPAS module scope
+							$psPASSession.WebSession = $($PSItem.GetWebSession())
+
+						}
+
+						( { $null -ne $PSItem.Token } ) {
+
+							#Shared Services Identity User Bearer Token
+							$CyberArkLogonResult = "Bearer $($PASSession.Token)"
+
+							#Make the IdentityCommand WebSession available in the psPAS module scope
+							$psPASSession.WebSession = $($PSItem.GetWebSession())
+
+						}
+
+						( { $null -ne $PSItem.LogonResult } ) {
+
+							#Shared Auth LogonResult.
+							$CyberArkLogonResult = $PASSession.LogonResult
+
+						}
+
+						( { $null -ne $PSItem.CyberArkLogonResult } ) {
+
+							#Classic CyberArkLogonResult
+							$CyberArkLogonResult = $PASSession.CyberArkLogonResult
+
+						}
+
+						default {
+
+							If ($PASSession.length -ge 180) {
+
+								#V10 Auth Token.
+								$CyberArkLogonResult = $PASSession
+
+							}
+
+						}
 
 					}
 
-					#Version 10
-					If ($PASSession.length -ge 180) {
-
-						#V10 Auth Token.
-						$CyberArkLogonResult = $PASSession
-
-					}
-
-					#Shared Auth
-					ElseIf ($PASSession.LogonResult) {
-
-						#Shared Auth LogonResult.
-						$CyberArkLogonResult = $PASSession.LogonResult
-
-					}
-
-					#Classic
-					Else {
-
-						#Classic CyberArkLogonResult
-						$CyberArkLogonResult = $PASSession.CyberArkLogonResult
-
-					}
+					#Record Session Start Time
+					$psPASSession.StartTime = Get-Date
 
 					#BaseURI set in Module Scope
-					Set-Variable -Name BaseURI -Value $Uri -Scope Script
+					$psPASSession.BaseURI = $Uri
+
+					#API URL for non PasswordVault operations
+					$psPASSession.ApiURI = $PrivilegeCloudURL
 
 					#Auth token added to WebSession
-					$Script:WebSession.Headers['Authorization'] = [string]$CyberArkLogonResult
+					$psPASSession.WebSession.Headers['Authorization'] = [string]$CyberArkLogonResult
 
 					#Initial Value for Version variable
 					[System.Version]$Version = '0.0'
@@ -557,7 +812,30 @@ function New-PASSession {
 					}
 
 					#Version information available in module scope.
-					Set-Variable -Name ExternalVersion -Value $Version -Scope Script
+					$psPASSession.ExternalVersion = $Version
+
+					Try {
+
+						#Get Authenticated User.
+						$User = Get-PASLoggedOnUser -ErrorAction Stop
+
+					} Catch {
+
+						if ($PSBoundParameters.ContainsKey('Credential')) {
+							$User = $Credential
+						} else {
+							$User = $null
+						}
+
+					} Finally {
+
+						if ($null -ne $User) {
+							$Username = $User | Select-Object -ExpandProperty UserName
+						} else { $Username = $User }
+
+						$psPASSession.User = $Username
+
+					}
 
 				}
 

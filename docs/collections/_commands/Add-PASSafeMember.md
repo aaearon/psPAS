@@ -24,7 +24,7 @@ Add-PASSafeMember -SafeName <String> -MemberName <String> [-SearchIn <String>]
  [-UnlockAccounts <Boolean>] [-ManageSafe <Boolean>] [-ManageSafeMembers <Boolean>] [-BackupSafe <Boolean>]
  [-ViewAuditLog <Boolean>] [-ViewSafeMembers <Boolean>] [-requestsAuthorizationLevel1 <Boolean>]
  [-requestsAuthorizationLevel2 <Boolean>] [-AccessWithoutConfirmation <Boolean>] [-CreateFolders <Boolean>]
- [-DeleteFolders <Boolean>] [-MoveAccountsAndFolders <Boolean>] [<CommonParameters>]
+ [-DeleteFolders <Boolean>] [-MoveAccountsAndFolders <Boolean>] [-memberType <String>] [<CommonParameters>]
 ```
 
 ### Gen1
@@ -55,7 +55,7 @@ Unless otherwise specified, the default permissions applied to a safe member wil
 
 If these permissions should not be granted to the safe member, they must be explicitly set to `$false` in the request.
 
-Gen1 API is depreciated from version 12.3
+Gen1 API is deprecated from version 12.3
 
 ## EXAMPLES
 
@@ -477,7 +477,7 @@ Valid Values: 0, 1 or 2
 
 Get-PASSafeMember (Gen1) may not return details of this permission
 
-Depreciated from version 12.3
+Deprecated from version 12.3
 
 ```yaml
 Type: Int32
@@ -600,7 +600,7 @@ Force use of Gen1 API.
 
 Should be specified for versions earlier than 12.1
 
-Depreciated from version 12.3
+Deprecated from version 12.3
 
 ```yaml
 Type: SwitchParameter
@@ -611,6 +611,25 @@ Required: True
 Position: Named
 Default value: None
 Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -memberType
+The member type.
+
+Accepts Values: User, Group, Role
+
+Minimum required version 12.6
+
+```yaml
+Type: String
+Parameter Sets: Gen2
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
 Accept wildcard characters: False
 ```
 

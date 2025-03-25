@@ -21,18 +21,19 @@ function New-PASAccountPassword {
     PROCESS {
 
         #Create URL for request
-        $URI = "$Script:BaseURI/api/Accounts/$AccountID/Secret/Generate"
+        $URI = "$($psPASSession.BaseURI)/api/Accounts/$AccountID/Secret/Generate"
 
         if ($PSCmdlet.ShouldProcess($AccountID, 'Generate New Password')) {
 
             #Send request to webservice
-            $result = Invoke-PASRestMethod -Uri $URI -Method POST -WebSession $Script:WebSession
+            $result = Invoke-PASRestMethod -Uri $URI -Method POST
 
             if ($null -ne $result) {
 
                 #Unescape returned string.
-                $result = [System.Text.RegularExpressions.Regex]::Unescape($result.password)
-
+                try {
+                    $result = [System.Text.RegularExpressions.Regex]::Unescape($result.password)
+                } catch { $result = $result.password }
                 [PSCustomObject] @{'Password' = $result } | Add-ObjectDetail -typename psPAS.CyberArk.Vault.Credential
 
             }

@@ -18,21 +18,22 @@ Function Set-PASPTAEvent {
 	)
 
 	BEGIN {
+		Assert-VersionRequirement -SelfHosted
 		Assert-VersionRequirement -RequiredVersion 11.3
 	}#begin
 
 	PROCESS {
 
 		#Create request URL
-		$URI = "$Script:BaseURI/API/pta/API/Events/$EventID"
+		$URI = "$($psPASSession.BaseURI)/API/pta/API/Events/$EventID"
 
 		#Get Parameters to include in request
-		$body = $PSBoundParameters | Get-PASParameter -ParametersToRemove EventID | ConvertTo-Json
+		$Body = $PSBoundParameters | Get-PASParameter -ParametersToRemove EventID | ConvertTo-Json
 
 		if ($PSCmdlet.ShouldProcess($EventID, 'Update Event Status')) {
 
 			#Send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PATCH -Body $body
+			$result = Invoke-PASRestMethod -Uri $URI -Method PATCH -Body $Body
 
 		}
 

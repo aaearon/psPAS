@@ -20,9 +20,21 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $((Get-Date).AddMinutes(-5))
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+			LastError          = $null
+			LastErrorTime      = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -35,9 +47,6 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 	InModuleScope $(Split-Path (Split-Path (Split-Path -Parent $PSCommandPath) -Parent) -Leaf ) {
 		BeforeEach {
-			Mock Get-PASLoggedOnUser -MockWith {
-				[PSCustomObject]@{'Username' = 'SomeUser'; 'Prop2' = 'Val2' }
-			}
 
 			$response = Get-PASSession
 		}
@@ -51,33 +60,13 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			It 'has output with expected number of properties' {
 
-				($response | Get-Member -MemberType NoteProperty).length | Should -Be 4
+				$response.Keys.Count | Should -Be 12
 
 			}
 
 			It 'outputs object with expected typename' {
 
 				$response | Get-Member | Select-Object -ExpandProperty typename -Unique | Should -Be psPAS.CyberArk.Vault.Session
-
-			}
-
-			It 'does not throw if Get-PASLoggedOnUser fails' {
-				Mock Get-PASLoggedOnUser -MockWith {
-					throw 'Some Error'
-				}
-
-				{ Get-PASSession } | Should -Not -Throw
-
-			}
-
-			It 'does provides output if Get-PASLoggedOnUser fails' {
-				Mock Get-PASLoggedOnUser -MockWith {
-					throw 'Some Error'
-				}
-
-				$response = Get-PASSession
-
-				($response | Get-Member -MemberType NoteProperty).length | Should -Be 4
 
 			}
 

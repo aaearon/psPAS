@@ -129,7 +129,7 @@ function Get-PASSafeMember {
 			( { $PSItem -match '^Gen1-' } ) {
 
 				#Create URL for Gen1 API requests
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Safes/$($SafeName | Get-EscapedString)/Members"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Safes/$($SafeName | Get-EscapedString)/Members"
 
 			}
 
@@ -139,7 +139,7 @@ function Get-PASSafeMember {
 				Assert-VersionRequirement -RequiredVersion 12.0
 
 				#Create URL for Gen2 API requests
-				$URI = "$Script:BaseURI/api/Safes/$($SafeName | Get-EscapedString)/Members"
+				$URI = "$($psPASSession.BaseURI)/api/Safes/$($SafeName | Get-EscapedString)/Members"
 
 			}
 
@@ -188,9 +188,13 @@ function Get-PASSafeMember {
 
 				Assert-VersionRequirement -RequiredVersion 12.1
 
+				#Parameter to include as filter value in url
+				$Parameters = [Collections.Generic.List[Object]]::New(@('memberType', 'membershipExpired', 'includePredefinedUsers'))
+
 				#Get Parameters to include in request
-				$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove SafeName, memberType, membershipExpired, includePredefinedUsers, TimeoutSec
-				$filterParameters = $PSBoundParameters | Get-PASParameter -ParametersToKeep memberType, membershipExpired, includePredefinedUsers
+				$filterParameters = $PSBoundParameters | Get-PASParameter -ParametersToKeep $Parameters
+				$Parameters.AddRange(@('SafeName', 'TimeoutSec'))
+				$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove $Parameters
 				$FilterString = $filterParameters | ConvertTo-FilterString
 
 				If ($null -ne $FilterString) {
@@ -220,7 +224,7 @@ function Get-PASSafeMember {
 		#Build Request Parameters
 		$Request['URI'] = $URI
 		$Request['Method'] = $Method
-		$Request['WebSession'] = $Script:WebSession
+		$Request['WebSession'] = $psPASSession.WebSession
 
 		#Send request to webservice
 		$result = Invoke-PASRestMethod @Request
@@ -284,11 +288,29 @@ function Get-PASSafeMember {
 
 								If ($Total -gt 0) {
 
+									#Set memberlist as output collection
 									$Members = [Collections.Generic.List[Object]]::New(($result.value))
+
+									#Split Request URL into baseURI & any query string value
+									$URLString = $URI.Split('?')
+									$URI = $URLString[0]
+									$queryString = $URLString[1]
 
 									For ( $Offset = $Limit ; $Offset -lt $Total ; $Offset += $Limit ) {
 
-										$Null = $Members.AddRange((Invoke-PASRestMethod -Uri "$URI`?limit=$Limit&OffSet=$Offset" -Method GET -WebSession $Script:WebSession -TimeoutSec $TimeoutSec).value)
+										#While more members to return, create nextLink query value
+										$nextLink = "limit=$Limit&OffSet=$Offset"
+
+										if ($null -ne $queryString) {
+
+											#If original request contained a queryString, concatenate with nextLink value.
+											$nextLink = "$queryString&$nextLink"
+
+										}
+
+
+										#Request nextLink. Add memberlist to output collection.
+										$Null = $Members.AddRange((Invoke-PASRestMethod -Uri "$URI`?$nextLink" -Method GET -TimeoutSec $TimeoutSec).value)
 
 									}
 

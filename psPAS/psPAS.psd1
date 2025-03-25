@@ -4,7 +4,7 @@
 	RootModule        = 'psPAS.psm1'
 
 	# Version number of this module.
-	ModuleVersion     = '5.3.76'
+	ModuleVersion     = '6.4.85'
 
 	# ID used to uniquely identify this module
 	GUID              = '11c880d2-1430-4bd2-b6e8-f324741b460b'
@@ -16,7 +16,7 @@
 	# CompanyName       = ''
 
 	# Copyright statement for this module
-	Copyright         = '(c) 2017-2022 Pete Maan. All rights reserved.'
+	Copyright         = '(c) 2017-2024 Pete Maan. All rights reserved.'
 
 	# Description of the functionality provided by this module
 	Description       = 'Module for CyberArk Privileged Access Security Web Service REST API'
@@ -220,7 +220,39 @@
 		'Clear-PASLinkedAccount',
 		'Get-PASPlatformSummary',
 		'Enable-PASUser',
-		'Disable-PASUser'
+		'Disable-PASUser',
+		'Publish-PASDiscoveredAccount',
+		'Get-PASLinkedAccount',
+		'Add-PASPersonalAdminAccount',
+		'Add-PASPTAGlobalCatalog',
+		'Get-PASPTAGlobalCatalog',
+		'New-PASRequestObject',
+		'Get-PASPTARiskEvent',
+		'Set-PASPTARiskEvent',
+		'Get-PASPTARiskSummary',
+		'Get-PASUserTypeInfo',
+		'Get-PASPTAPrivilegedUser',
+		'Get-PASPTAPrivilegedGroup',
+		'Remove-PASPTAPrivilegedUser',
+		'Remove-PASPTAPrivilegedGroup',
+		'Add-PASPTAPrivilegedUser',
+		'Add-PASPTAPrivilegedGroup',
+		'Get-PASPTAIncludedTarget',
+		'Get-PASPTAExcludedTarget',
+		'Add-PASPTAIncludedTarget',
+		'Add-PASPTAExcludedTarget',
+		'Remove-PASPTAIncludedTarget',
+		'Remove-PASPTAExcludedTarget',
+		'Get-PASLinkedGroup',
+		'Set-PASIPAllowList',
+		'Get-PASIPAllowList',
+		'Get-PASBYOKConfig',
+		'Get-PASDiscoveredLocalAccount',
+		'Get-PASDiscoveredLocalAccountActivity',
+		'Publish-PASDiscoveredLocalAccount',
+		'Add-PASDiscoveredLocalAccount',
+		'Clear-PASDiscoveredLocalAccount',
+		'Remove-PASDiscoveredLocalAccount'
 	)
 
 	#AliasesToExport   = @()

@@ -33,6 +33,9 @@
 							<ListItem>
 								<PropertyName>additionalData</PropertyName>
 							</ListItem>
+							<ListItem>
+								<PropertyName>mStatus</PropertyName>
+							</ListItem>
 						</ListItems>
 					</ListEntry>
 				</ListEntries>
@@ -68,6 +71,9 @@
 							<ListItem>
 								<PropertyName>active</PropertyName>
 							</ListItem>
+							<ListItem>
+								<PropertyName>scope</PropertyName>
+							</ListItem>
 						</ListItems>
 					</ListEntry>
 				</ListEntries>
@@ -93,6 +99,74 @@
 							</ListItem>
 							<ListItem>
 								<PropertyName>pendAccount_UnmanagedPrivilegedAccount</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
+		</View>
+		<View>
+			<Name>psPAS.CyberArk.Vault.PTA.Event.Risk</Name>
+			<ViewSelectedBy>
+				<TypeName>psPAS.CyberArk.Vault.PTA.Event.Risk</TypeName>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>id</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>type</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>status</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>closeReason</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>reasonText</PropertyName>
+							</ListItem>
+							<ListItem>
+								<Label>detectionTime</Label>
+								<ScriptBlock>(get-date 1/1/1970).addseconds($_.detectionTime/1000)</ScriptBlock>
+							</ListItem>
+							<ListItem>
+								<PropertyName>score</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>riskAccount</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>riskService</PropertyName>
+							</ListItem>
+						</ListItems>
+					</ListEntry>
+				</ListEntries>
+			</ListControl>
+		</View>
+		<View>
+			<Name>psPAS.CyberArk.Vault.PTA.Event.Risk.Summary</Name>
+			<ViewSelectedBy>
+				<TypeName>psPAS.CyberArk.Vault.PTA.Event.Risk.Summary</TypeName>
+			</ViewSelectedBy>
+			<ListControl>
+				<ListEntries>
+					<ListEntry>
+						<ListItems>
+							<ListItem>
+								<PropertyName>data</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>type</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>score</PropertyName>
+							</ListItem>
+							<ListItem>
+								<PropertyName>attributes</PropertyName>
 							</ListItem>
 						</ListItems>
 					</ListEntry>

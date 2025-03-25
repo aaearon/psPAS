@@ -29,7 +29,7 @@ Function Set-PASPTARemediation {
 	)
 
 	BEGIN {
-
+		Assert-VersionRequirement -SelfHosted
 		Assert-VersionRequirement -RequiredVersion 10.4
 
 	}#begin
@@ -40,7 +40,7 @@ Function Set-PASPTARemediation {
 		$boundParameters = $PSBoundParameters | Get-PASParameter
 
 		#Create URL for Request
-		$URI = "$Script:BaseURI/API/pta/API/Settings/AutomaticRemediations/"
+		$URI = "$($psPASSession.BaseURI)/API/pta/API/Settings/AutomaticRemediations/"
 
 
 		#Create body of request
@@ -49,14 +49,7 @@ Function Set-PASPTARemediation {
 		if ($PSCmdlet.ShouldProcess('PTA', 'Update Automatic Remediation Config')) {
 
 			#send request to PAS web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PATCH -Body $Body -WebSession $Script:WebSession
-
-			If ($null -ne $result) {
-
-				#Return Results
-				$result.automaticRemediation | Add-ObjectDetail -typename 'psPAS.CyberArk.Vault.PTA.Remediation'
-
-			}
+			Invoke-PASRestMethod -Uri $URI -Method PATCH -Body $Body | Out-Null
 
 		}
 

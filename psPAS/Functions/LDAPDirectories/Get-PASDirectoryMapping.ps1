@@ -25,13 +25,14 @@ function Get-PASDirectoryMapping {
 	)
 
 	BEGIN {
+		Assert-VersionRequirement -SelfHosted
 		Assert-VersionRequirement -RequiredVersion 10.7
 	}#begin
 
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/"
+		$URI = "$($psPASSession.BaseURI)/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/"
 
 		if ($PSCmdlet.ParameterSetName -eq 'Mapping') {
 
@@ -41,7 +42,7 @@ function Get-PASDirectoryMapping {
 		}
 
 		#send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET
 
 		If ($null -ne $result) {
 

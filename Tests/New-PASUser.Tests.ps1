@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -88,7 +98,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/WebServices/PIMServices.svc/Users"
+					$URI -eq "$($Script:psPASSession.BaseURI)/WebServices/PIMServices.svc/Users"
 
 				} -Times 1 -Exactly -Scope It
 
@@ -129,14 +139,17 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 				}
 
 				$InputObj = [pscustomobject]@{
-					'UserName'        = 'SomeUser'
-					'InitialPassword' = $('P_Password' | ConvertTo-SecureString -AsPlainText -Force)
-					'FirstName'       = 'Some'
-					'LastName'        = 'User'
-					'ExpiryDate'      = '10/31/2018'
-					'workStreet'      = 'SomeStreet'
-					'homePage'        = 'www.geocities.com'
-					'faxNumber'       = '1979'
+					'UserName'                     = 'SomeUser'
+					'InitialPassword'              = $('P_Password' | ConvertTo-SecureString -AsPlainText -Force)
+					'FirstName'                    = 'Some'
+					'LastName'                     = 'User'
+					'ExpiryDate'                   = '10/31/2018'
+					'workStreet'                   = 'SomeStreet'
+					'homePage'                     = 'www.geocities.com'
+					'faxNumber'                    = '1979'
+					'userActivityLogRetentionDays' = 30
+					'loginFromHour'                = 8
+					'loginToHour'                  = 18
 
 				}
 
@@ -154,7 +167,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/api/Users"
+					$URI -eq "$($Script:psPASSession.BaseURI)/api/Users"
 
 				} -Times 1 -Exactly -Scope It
 
@@ -180,15 +193,15 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			It 'has a request body with expected number of properties' {
 
-				($Script:RequestBody | Get-Member -MemberType NoteProperty).length | Should -Be 7
+				($Script:RequestBody | Get-Member -MemberType NoteProperty).length | Should -Be 10
 
 			}
 
 			It 'throws error if version requirement not met' {
-				$Script:ExternalVersion = '1.0'
+				$psPASSession.ExternalVersion = '1.0'
 
 				{ $InputObj | New-PASUser } | Should -Throw
-				$Script:ExternalVersion = '0.0'
+				$psPASSession.ExternalVersion = '0.0'
 
 			}
 

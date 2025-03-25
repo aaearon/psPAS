@@ -9,15 +9,18 @@ function Get-PASSafeShareLogo {
 		[String]$ImageType
 	)
 
-	BEGIN { }#begin
+	BEGIN {
+		#!Depracated above 13.2
+		Assert-VersionRequirement -MaximumVersion 13.2
+	}#begin
 
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Logo?type=$ImageType"
+		$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Logo?type=$ImageType"
 
 		#send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET
 
 
 		If ($null -ne $result) {

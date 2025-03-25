@@ -53,7 +53,7 @@ function Set-PASSafe {
 		[string]$ManagingCPM,
 
 		[Parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2-NumberOfVersionsRetention'
 		)]
@@ -66,7 +66,7 @@ function Set-PASSafe {
 		[int]$NumberOfVersionsRetention,
 
 		[Parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2-NumberOfDaysRetention'
 		)]
@@ -75,7 +75,7 @@ function Set-PASSafe {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen1-NumberOfDaysRetention'
 		)]
-		[ValidateRange(1, 3650)]
+		[ValidateRange(0, 3650)]
 		[int]$NumberOfDaysRetention,
 
 		[parameter(
@@ -100,10 +100,22 @@ function Set-PASSafe {
 
 		$BoundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove NewSafeName
 
-		if ($PSBoundParameters.ContainsKey('NewSafeName')) {
+		$SafeObject = Get-PASSafe -SafeName $SafeName
+		if ($null -ne $SafeObject) {
+			Format-PutRequestObject -InputObject $SafeObject -boundParameters $BoundParameters -ParametersToKeep ManagingCPM, location, Description,
+			NumberOfVersionsRetention, NumberOfDaysRetention
+		}
 
-			$BoundParameters['SafeName'] = $PSBoundParameters['NewSafeName']
-
+		switch ($PSBoundParameters.Keys) {
+			'NewSafeName' {
+				$BoundParameters['SafeName'] = $PSBoundParameters['NewSafeName']
+			}
+			'NumberOfDaysRetention' {
+				$BoundParameters.Remove('NumberOfVersionsRetention')
+			}
+			'NumberOfVersionsRetention' {
+				$BoundParameters.Remove('NumberOfDaysRetention')
+			}
 		}
 
 		switch ($PSCmdlet.ParameterSetName) {
@@ -115,7 +127,7 @@ function Set-PASSafe {
 				$typename = "$typename.Gen2"
 
 				#Create URL for Request
-				$URI = "$Script:BaseURI/api/Safes/$($SafeName | Get-EscapedString)"
+				$URI = "$($psPASSession.BaseURI)/api/Safes/$($SafeName | Get-EscapedString)"
 
 				#Create Request Body
 				$body = $BoundParameters | ConvertTo-Json
@@ -129,7 +141,7 @@ function Set-PASSafe {
 				Assert-VersionRequirement -MaximumVersion 12.3
 
 				#Create URL for Request
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Safes/$($SafeName | Get-EscapedString)"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Safes/$($SafeName | Get-EscapedString)"
 
 				#Create Request Body
 				$body = @{
@@ -147,7 +159,7 @@ function Set-PASSafe {
 		if ($PSCmdlet.ShouldProcess($SafeName, 'Update Safe Properties')) {
 
 			#Send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
 			If ($null -ne $result) {
 

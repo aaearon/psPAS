@@ -16,13 +16,13 @@ function Set-PASDirectoryMapping {
 		[string]$MappingID,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[string]$MappingName,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[string]$LDAPBranch,
@@ -62,12 +62,34 @@ function Set-PASDirectoryMapping {
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateRange(1, 3650)]
-		[int]$UserActivityLogPeriod
+		[int]$UserActivityLogPeriod,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[int]$UsedQuota,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[AllowEmptyCollection()]
+		[ValidateSet('PIMSU', 'PSM', 'PSMP', 'PVWA', 'WINCLIENT', 'PTA', 'PACLI', 'NAPI', 'XAPI', 'HTTPGW',
+			'EVD', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
+		[string[]]$AuthorizedInterfaces,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[boolean]$EnableENEWhenDisconnected
 
 	)
 
 	BEGIN {
 
+		Assert-VersionRequirement -SelfHosted
 		#10.7 functionality
 		Assert-VersionRequirement -RequiredVersion 10.7
 
@@ -97,17 +119,35 @@ function Set-PASDirectoryMapping {
 
 			}
 
+			{ $_ -match 'UsedQuota|AuthorizedInterfaces|EnableENEWhenDisconnected' } {
+
+				#v10.7
+				Assert-VersionRequirement -RequiredVersion 14.0
+				Continue
+
+			}
+
 		}
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/$MappingID/"
+		$URI = "$($psPASSession.BaseURI)/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/$MappingID/"
+
+		$DirectoryMapping = Get-PASDirectoryMapping -DirectoryName $DirectoryName -MappingID $MappingID
+		if ($null -ne $DirectoryMapping) {
+			Format-PutRequestObject -InputObject $DirectoryMapping -boundParameters $BoundParameters -ParametersToRemove MappingID, DirectoryMappingOrder,
+			LogonToHour, LogonFromHour, UserExpiration, DisableUser, UserType, AuthenticationMethod
+		}
+
+		$boundParameters['DomainGroups'] = $boundParameters['DomainGroups'] -as [array]
+		$boundParameters['AuthorizedInterfaces'] = $boundParameters['AuthorizedInterfaces'] -as [array]
+		$boundParameters['MappingAuthorizations'] = $boundParameters['MappingAuthorizations'] -as [array]
 
 		$body = $boundParameters | ConvertTo-Json
 
 		if ($PSCmdlet.ShouldProcess($MappingID, 'Update Directory Mapping')) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
 			If ($null -ne $result) {
 

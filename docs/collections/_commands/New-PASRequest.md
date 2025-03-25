@@ -10,7 +10,7 @@ title: New-PASRequest
 # New-PASRequest
 
 ## SYNOPSIS
-Creates an access request for a specific account
+Creates requests for account access
 
 ## SYNTAX
 
@@ -31,14 +31,33 @@ New-PASRequest -AccountId <String> [-Reason <String>] [-TicketingSystemName <Str
  [<CommonParameters>]
 ```
 
+### BulkSearch
+```
+New-PASRequest -Search <String> [-ExcludedEntities <String[]>] [-Reason <String>]
+ [-TicketingSystemName <String>] [-TicketID <String>] [-MultipleAccessRequired <Boolean>]
+ [-FromDate <DateTime>] [-ToDate <DateTime>] [-AdditionalInfo <Hashtable>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
+### BulkFilter
+```
+New-PASRequest -SavedFilter <String> [-ExcludedEntities <String[]>] [-Reason <String>]
+ [-TicketingSystemName <String>] [-TicketID <String>] [-MultipleAccessRequired <Boolean>]
+ [-FromDate <DateTime>] [-ToDate <DateTime>] [-AdditionalInfo <Hashtable>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
+```
+
+### BulkItems
+```
+New-PASRequest -BulkItems <Object[]> [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
 ## DESCRIPTION
-Creates an access request for a specific account.
+Creates an access request for a specific account, list of accounts, or multiple accounts which match filter or search criteria.
 
-This account may be either a password account or an SSH Key account.
+A specific account may be either a password account or an SSH Key account.
 
-Officially supported from version 9.10.
-
-Reports received that function works in 9.9 also.
+Requesting access to multiple accounts is only available if Add accounts, Update account content, and Update account properties authorization is held for at least one Safe.
 
 ## EXAMPLES
 
@@ -49,6 +68,37 @@ New-PASRequest -AccountId $ID -Reason "Task ABC" -MultipleAccessRequired $true -
 
 Creates a new request for access to account with ID in $ID
 
+### EXAMPLE 2
+```
+New-PASRequest -Search some_admin -ExcludedEntities 123_4, 456_78 -Reason "some reason"
+```
+
+Requests access to multiple accounts matching search term
+
+### EXAMPLE 3
+```
+New-PASRequest -SavedFilter Favorites -ExcludedEntities 12_3, 45_6 -Reason "some reason"
+```
+
+Requests access to multiple accounts matching saved filter
+
+### EXAMPLE 4
+```
+New-PASRequest -BulkItems $Requests
+```
+
+Submits a list of request objects.
+Request objects are created with the New-PASRequestObject command.
+
+### EXAMPLE 5
+```
+New-PASRequest -MultipleAccessRequired $true -FromDate (Get-Date) -ToDate (Get-Date).AddDays(1) -SavedFilter Favorites -ExcludedEntities 50_3 -Reason "Some Reason"
+```
+
+Requests multiple access over 24 hours to multiple accounts matching saved filter.
+
+Multiple access requests must include ToDate and FromDate values
+
 ## PARAMETERS
 
 ### -AccountId
@@ -56,7 +106,7 @@ The ID of the account to access
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams
 Aliases:
 
 Required: True
@@ -71,7 +121,7 @@ The reason why the account will be accessed
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -86,7 +136,7 @@ The name of the Ticketing system specified in the request
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -101,7 +151,7 @@ The Ticket ID given by the ticketing system.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -116,7 +166,7 @@ Whether the request is for multiple accesses
 
 ```yaml
 Type: Boolean
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -131,7 +181,7 @@ If the request is for a timeframe, the time from when the user wants to access t
 
 ```yaml
 Type: DateTime
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -146,7 +196,7 @@ If the request is for a timeframe, the time until the user wants to access the a
 
 ```yaml
 Type: DateTime
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -161,7 +211,7 @@ Additional information included in the request
 
 ```yaml
 Type: Hashtable
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams, BulkSearch, BulkFilter
 Aliases:
 
 Required: False
@@ -176,7 +226,7 @@ Whether or not the request is for connection through the PSM.
 
 ```yaml
 Type: Boolean
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams
 Aliases:
 
 Required: False
@@ -192,7 +242,7 @@ as defined in the configuration.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ConnectionParams, ManualParams
 Aliases:
 
 Required: False
@@ -338,6 +388,76 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -BulkItems
+An array of Requests created with New-PASRequestObject.
+
+Requires minimum version of 13.2
+
+```yaml
+Type: Object[]
+Parameter Sets: BulkItems
+Aliases:
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -ExcludedEntities
+A list of AccountID's to exclude when using search or filter to request access for multiple accounts.
+
+Requires minimum version of 13.2
+
+```yaml
+Type: String[]
+Parameter Sets: BulkSearch, BulkFilter
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -SavedFilter
+Request access to multiple accounts which match a savedFilter.
+
+Accepts account view  filter names 'Regular', 'Recently', 'Locked' & 'Favorites'
+
+Requires minimum version of 13.2
+
+```yaml
+Type: String
+Parameter Sets: BulkFilter
+Aliases:
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -Search
+Request access to multiple accounts which match a search term
+
+Requires minimum version of 13.2
+
+```yaml
+Type: String
+Parameter Sets: BulkSearch
+Aliases:
+
+Required: True
+Position: Named
+Default value: None
+Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
@@ -353,3 +473,5 @@ Minimum CyberArk Version 9.10
 [https://pspas.pspete.dev/commands/New-PASRequest](https://pspas.pspete.dev/commands/New-PASRequest)
 
 [https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/CreateRequest.htm](https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/CreateRequest.htm)
+
+[https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/Latest/en/Content/WebServices/Create-multiple-requests.htm](https://docs.cyberark.com/Product-Doc/OnlineHelp/PAS/13.2/en/Content/WebServices/Create-multiple-requests.htm)

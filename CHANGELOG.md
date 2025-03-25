@@ -3,13 +3,433 @@
 ## Planned Updates / Unreleased
 
 - Continued development to encompass any new documented features of the CyberArk API.
-- psPAS v6.0...
-- Removal of depreciated `filter` parameters.
-- Documentation updates
+- psPAS v7.0...
 
-## **5.3.76 (August 17th 2022)** ##
+## [unreleased]
 
--Updates
+### Added
+- `Get-PASDiscoveryRuleSet`
+  - Privilege Cloud only command to show configured discovery rule sets
+- `New-PASDiscoveryRuleSet`
+  - Privilege Cloud only command to create a discovery rule set
+- `Set-PASDiscoveryRuleSet`
+  - Privilege Cloud only command to update a discovery rule set
+- `Remove-PASDiscoveryRuleSet`
+  - Privilege Cloud only command to delete a discovery rule set
+
+### Updated
+- N/A
+
+### Fixed
+- N/A
+
+## [6.4.85]
+
+### Added
+- N/A
+
+### Updated
+- N/A
+
+### Fixed
+- `Set-PASUser`
+  - Adds logic to not attempt conversion to unix time if expiry date is not a valid datetime object, this resolves an issue where an error was raised when updating an account with an existing value for the `expirydate` property
+  - Adds logic to not apply time zone offset when specifying Unix epoch time to remove an expiry date from an account which could previously result in an invalid time value in non-GMT time zones.
+
+## [6.4.80]
+
+Includes a general update across multiple module commands to ensure commands which are specific to self-hosted implementations are not able to be run against Privilege Cloud, and any commands which are specific to Privilege Cloud are not able to be run against a Self-Hosted solution.
+
+### Added
+- `Get-PASIPAllowList`
+  - Privilege Cloud only command to show IP Allow List
+- `Set-PASIPAllowList`
+  - Privilege Cloud only command to set IP Allow List
+- `Get-PASBYOKConfig`
+  - Privilege Cloud only command to show BYOK Config
+- `Publish-PASDiscoveredLocalAccount`
+  - Privilege Cloud only command to publish discovered local account
+- `Get-PASDiscoveredLocalAccountActivity`
+  - Privilege Cloud only command to show discovered local account activity
+- `Get-PASDiscoveredLocalAccount`
+  - Privilege Cloud only command to show local discovered account details
+- `Clear-PASDiscoveredLocalAccount`
+  - Privilege Cloud only command to delete all discovered local accounts from the Pending Accounts list.
+- `Add-PASDiscoveredLocalAccount`
+  - Privilege Cloud only command to add a specific local account to the Discovered Accounts list
+- `Remove-PASDiscoveredLocalAccount`
+  - Privilege Cloud only command to remove a local account from the Discovered Accounts list
+
+### Updated
+- `Invoke-PASRestMethod`
+  - Improvements to error handling
+
+### Fixed
+- `Get-PASPSMRecording`
+  - Fixes result paging issue
+- `Get-PASPSMSession`
+  - Fixes result paging issue
+
+## **6.3.78**
+
+### Added
+- N/A
+
+### Updated
+- `Get-PASPSMRecording`
+  - In-line with PVWA default operation:
+    - Changed the default limit for each page of results to 100, in-line with PVWA default values
+    - Updated to return recordings from the last 48 hours by default when `FromTime` & `ToTime` parameters are not specified.
+  - When specifying `ToTime` without `FromTime`, recordings from the 48 hours before `ToTime` are returned.
+    - This avoids potential for unintentionally long running queries which return details of many recording from the vault.
+- `Set-PASUser`
+  - Updated to query for, and send, any existing user properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the user object.
+    - This update allows single properties to be updated without having to specify all properties.
+  - Allows Empty argument for `unAuthorizedInterfaces` & `vaultAuthorization` parameters to enable set values to be cleared.
+  - Corrects ValidateSet for `unAuthorizedInterfaces` parameter.
+- `Set-PASSafe`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+- `Set-PASOpenIDConnectProvider`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+    - Number of mandatory parameters required to be specified has been reduced
+- `Set-PASPTARule`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+    - Number of mandatory parameters required to be specified has been reduced
+- `Set-PASDirectoryMapping`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+    - Number of mandatory parameters required to be specified has been reduced
+- `New-PASOnboardingRule`
+  - Reordered parameters to simplify tab completion options
+- `Set-PASOnboardingRule`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+    - Number of mandatory parameters required to be specified has been reduced
+- `Set-PASPlatformPSMConfig`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+    - Number of mandatory parameters required to be specified has been reduced
+- `Set-PASSafeMember`
+  - Updated to query for, and send, any existing properties, which are not being specifically updated, with the request.
+    - Previously, due to the PUT operation used by the API, any properties not specified in a request would be cleared on the object.
+    - This update allows single properties to be updated without having to specify all properties.
+- `New-PASUser`
+  - In-line with update to `Set-PASUser`
+    - Allows Empty argument for `unAuthorizedInterfaces` & `vaultAuthorization` parameters.
+    - Corrects ValidateSet for `unAuthorizedInterfaces` parameter.
+- `Get-PASComponentDetail`
+  - Adds assertion that command specifying `PTA` component  must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Add-PASAccountACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Get-PASAccountACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Remove-PASAccountACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Invoke-PASCPMOperation`
+  - Adds assertion that Gen1 verify task must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Set-PASAccount`
+  - Adds assertion that Gen1 task must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Close-PASSession`
+  - Adds assertion that Shared Authentication logoff request is executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `New-PASSession`
+  - Adds assertion that Shared Authentication logon request is executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Add-PASPolicyACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Get-PASPolicyACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Remove-PASPolicyACL`
+  - Adds assertion that command must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Remove-PASSafeMember`
+  - Adds assertion that command using Gen1 parameters must be executed against a self hosted implementation as invocation against privilege cloud is not supported.
+- `Assert-VersionRequirement`
+  - Updates helper function to provide ability to assert if command is being run against self-hosted or privilege cloud implementation.
+
+### Fixed
+- N/A
+
+## **6.2.68**
+
+### Added
+- N/A
+
+### Updated
+- `Get-PASSession`
+  - makes additional information available to users running the command
+    - authentication time
+    - session length
+    - last command and result data
+    - last error details
+- `New-PASPSMSession`
+  - RDP and PSMGW connections will be automatically opened when issuing  connection request.
+- `New-PASSession`
+  - Adds logic around getting the logged on user name for either self-hosted or privilege cloud deployments
+- PSM Session Data Formats
+  - Adds `Start` & `End` to standard table view output
+  - Formats `Start` & `End` as standard datetime instead of unixtime.
+
+### Fixed
+- `Add-PASGroupMember`,`Remove-PASGroup`,`Set-PASGroup`
+  - Standardises name of `ID` parameter.
+  - Adds `GroupID` alias to `ID` parameter.
+
+## **6.1.62**
+
+### Added
+- N/A
+
+### Updated
+- `Get-PASPSMRecording`
+  - Removes `Offset` Parameter
+  - Updates `FromTime` & `ToTime` parameters to `[datetime]` types
+  - Returns all pages of results instead of only the first page of results
+- `Get-PASPSMSession`
+  - Removes `Offset` Parameter
+  - Updates `FromTime` & `ToTime` parameters to `[datetime]` types
+  - Returns all pages of results instead of only the first page of results
+- `Get-PASAccount`
+  - Removes `Offset` Parameter
+- `Get-PASDiscoveredAccount`
+  - Removes `Offset` Parameter
+
+### Fixed
+- `Get-PASSession`
+  - Removes `UserName` from command output, avoiding error condition on expired session.
+- `Get-PASPlatform`
+  - Adds `search` parameter to the default `targets` parameterset
+- ISPSS Error Handling
+  - Fixes issue where error returned from ISPSS solution may not be handled properly
+
+## **6.1.50**
+
+### Module update to cover all CyberArk 14.0 API features
+
+### Added
+- `Add-PASPTAExcludedTarget`
+  - New command, supported from 14.0
+- `Add-PASPTAIncludedTarget`
+  - New command, supported from 14.0
+- `Add-PASPTAPrivilegedGroup`
+  - New command, supported from 14.0
+- `Add-PASPTAPrivilegedUser`
+  - New command, supported from 14.0
+- `Get-PASPTAExcludedTarget`
+  - New command, supported from 14.0
+- `Get-PASPTAIncludedTarget`
+  - New command, supported from 14.0
+- `Get-PASPTAPrivilegedGroup`
+  - New command, supported from 14.0
+- `Get-PASPTAPrivilegedUser`
+  - New command, supported from 14.0
+- `Remove-PASPTAExcludedTarget`
+  - New command, supported from 14.0
+- `Remove-PASPTAIncludedTarget`
+  - New command, supported from 14.0
+- `Remove-PASPTAPrivilegedGroup`
+  - New command, supported from 14.0
+- `Remove-PASPTAPrivilegedUser`
+  - New command, supported from 14.0
+- `Get-PASLinkedGroup`
+  - New experimental command based on undocumented API.
+
+ ### Updated
+- `Get-PASAccountActivity`
+  - Adds Gen2 replacement for deprecated Gen1 API.
+  - Updates default operation to target Gen2 API.
+- `Get-PASPTARiskEvent`
+  - New filter parameters `FromTime` & `ToTime`
+  - Fixes output and result paging
+- `Set-PASPTARiskEvent`
+  - New parameters `closeReason` & `reasonText`
+  - General Fixes
+- `New-PASDirectoryMapping`
+  - New parameters `UsedQuota`, `AuthorizedInterfaces` & `EnableENEWhenDisconnected`
+- `Set-PASDirectoryMapping`
+  - New parameters `UsedQuota`, `AuthorizedInterfaces` & `EnableENEWhenDisconnected`
+
+ ### Fixed
+- `Invoke-PASRestMethod`
+  - Avoids potential error condition when handling errors in ISPSS environments
+
+## **6.0.30**
+
+### Added
+ - N/A
+
+ ### Updated
+- `Add-PASPTARule` & `Set-PASPTARule`
+  - Adds scope parameters `vaultUsersMode`, `vaultUsersList`, `machinesMode` & `machinesList`
+  - Includes scope property in output by default
+
+ ### Fixed
+- `Add-PASApplication`
+   - Updates date format of `ExpirationDate` to `MM/dd/yyyy`. Resolves issue observed when sending date format of `MM-dd-yyyy`
+- `Set-PASPTAEvent` & `Set-PASPTARiskEvent`
+  - Fixes issue where websession object and auth header were not being sent with the request
+
+## **6.0.21**
+
+### Added
+ - N/A
+
+ ### Updated
+ - N/A
+
+ ### Fixed
+ - Debug Trace Output
+   - Resolves condition where authentication password value might be revealed in debug trace output in a scenario where  `Set-PSDebug -Trace 2` is active in the console host.
+
+## **6.0.18**
+
+### Added
+- N/A
+
+### Changed
+- `Set-PASSafe`
+  - Allows `0` as valid value for parameter `NumberOfDaysRetention`
+- `Get-PASServerWebService`
+  - Depreciates Gen1 endpoint from 13.2. Adds Gen2 endpoint as default.
+- `Get-PASSafeShareLogo`
+  - Depreciates command from 13.2.
+- `Invoke-PASCPMOperation`
+  - Depreciates Gen1 endpoint from 13.2.
+- `Get-PASAccountActivity`
+  - Depreciates command from 13.2.
+- `Add-PASPendingAccount`
+  - Depreciates command from 13.2.
+
+### Fixed
+- `Get-PASAccount`
+  - Resolves issue where, if number of results of a `SavedFilter` are greater than the page size (either default or set via the `limit` parameter), only the URL of the first request sent would include the SavedFilter value.
+
+## **6.0.4**
+
+- Updated
+  - `Add-PASSafeMember`
+    - Adds 'Role' to acceptable values in ParameterSet for `memberType` parameter
+
+## **6.0.0**
+
+- Update & Breaking Change
+  - `New-PASSession`
+    - **All Privilege Cloud Shared Services Authentication via the CyberArk Identity Platform now depends on the pspete `IdentityCommand` module.**
+    - Adds Identity User Authentication, using the `IdentityCommand` module to satisfy Identity MFA challenges and obtain required authentication token to use against Privileged Cloud Shared Services.
+    - Adds logic to determine correct Identity tenant URL based on provided Privileged Cloud Subdomain value.
+    - Both Privileged Cloud API URL & Identity Portal URL are required to be specified if subdomain value is not provided.
+    - Service User authentication for Shared Services introduced in recent previous versions requires installation of `IdentityCommand` module and specification of additional attribute.
+    - See [the docs](https://pspas.pspete.dev/docs/authentication/#shared-services-authentication) & [New-PASSession](https://pspas.pspete.dev/commands/New-PASSession) for full details.
+
+## **5.6.135 (July 31st 2023)**
+
+### Module update to cover all CyberArk 13.2 API features
+
+**psPAS Year 6**
+
+- New
+  - `Get-PASUserTypeInfo`
+    - Output information on User Types
+  - `Get-PASPTARiskEvent`
+    - Output PTA Risk Events
+  - `Set-PASPTARiskEvent`
+    - Update PTA Risk Events
+  - `Get-PASPTARiskSummary`
+    - Output PTA Risk Summary
+  - `New-PASRequestObject`
+    - Enables creation of request objects for bulk account access requests using `New-PASRequest`.
+- Updates
+  - `New-PASSession`
+    - Adds option for PKIPN authentication.
+      - Thanks ([JesseMcWilliamss](https://github.com/JesseMcWilliamss))!
+    - Adds options to Shared Services Authentication capability
+      - Supports different subdomains for Identity & Privilege Cloud tenants
+      - Supports ability to provide tenant URLs for Identity & Privilege Cloud systems.
+  - `Unlock-PASAccount`
+    - Adds Unlock capability, in addition to the existing check-in capability.
+      - Thanks & Credit to ([Qrelis](https://github.com/Qrelis))for this!
+  - `Get-PASUser`
+    - Adds `source` parameter (allows filter by cyberark or ldap source).
+    - Adds `userStatus` parameter (allows filter by active, disabled, or suspended status).
+  - `New-PASUser` & `Set-PASUser`
+    - Adds parameters `userActivityLogRetentionDays`, `loginFromHour` & `loginToHour`
+  - `New-PASRequest`
+    - Adds new ParameterSets `BulkSearch`, `BulkFilter` & `BulkItems`.
+  - `Get-PASRequest`
+    - Adds `id` parameter to support get status bulk request actions.
+
+## **5.5.110 (March 7th 2023)**
+
+### Module update to cover all CyberArk 13.0 API features
+
+- New
+  - Adds `Get-PASPTAGlobalCatalog` & `Add-PASPTAGlobalCatalog` commands, available for v13.
+- Updates
+  - `New-PASSession`
+    - Adds Shared Services Auth Support
+    - Allows null or empty `OTPDelimiter` to be specified
+  - `Set-PASPTARule`
+    - Updates validation for parameter `id`
+  - `Get-PASComponentDetail`
+    - Adds `pta` as option for parameter `component`
+  - `Add-PASSafe`
+    - Allows `0` as valid value for parameter `NumberOfDaysRetention`
+  - `Add-PASSafeMember`
+    - Adds optional `memberType` parameter, accepted from 12.6 onward.
+- Other
+  - Allow UPN UserName format
+    - Updates the parameter validation logic of the `*-PASPublicSSHKey` functions to allow UPN style usernames to be specified and accepted.
+  - Updates `psPAS.CyberArk.Vault.OnboardingRule` format in line with expected output according to product documentation.
+  - Documentation update
+    - Correct version requirement information for the `Get-PASAccount` `searchType` parameter.
+
+## **5.4.101 (November 20th 2022)**
+
+- Fix `Get-PASSafeMember`
+  - Corrects format of URL value when returning many safe members
+    - Thanks [InconstantRO](https://github.com/InconstantRO)!
+- Documentation
+  - Additional example added to `Get-PASAccount` help file
+    - Thanks [rorobig](https://github.com/rorobig)!
+
+## **5.4.94 (September 26th 2022)**
+
+- Breaking Changes
+  - `Get-PASAccount`
+    - Removes `Gen2Filter` ParameterSet.
+    - Equivalent functionality remains available via other available parameters.
+  - `Get-PASGroup`
+    - Removes `filter` ParameterSet.
+    - Equivalent functionality remains available via other available parameters.
+- New Commands
+  - `Publish-PASDiscoveredAccount`
+    - Feature Request: Onboards a discovered account.
+    - Based on swagger documentation
+  - `Get-PASLinkedAccount`
+    - Gets details of linked accounts
+  - `Add-PASPersonalAdminAccount`
+    - Specific for Adding Personal Admin Accounts in Privilege Cloud.
+    - Based on swagger documentation
+- Other Updates
+  - `New-PASSession`
+    - Feature Request: Adds support for PKI Authentication.
+  - `Get-PASAccount`
+    - Adds `limit` & `offset` parameters.
+  - `Get-PASSafe`
+    - Corrects ambiguous invocation options (Gen1).
+  - Documentation
+    - General updates throughout.
+
+## **5.3.76 (August 17th 2022)**
+
+- Updates
   - Set-PASUser / New-PASUser
     - Adds `GUI` as available parameter value for `unAuthorizedInterfaces` parameter.
 - Gen1 API Specific

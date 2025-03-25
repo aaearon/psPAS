@@ -9,15 +9,17 @@ Function Set-PASPlatformPSMConfig {
 		[int]$ID,
 
 		[parameter(
-			Mandatory = $true,
+			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
+		[AllowEmptyString()]
 		[string]$PSMServerID,
 
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
+		[AllowEmptyCollection()]
 		[PSObject[]]$PSMConnectors
 	)
 
@@ -30,15 +32,22 @@ Function Set-PASPlatformPSMConfig {
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/API/Platforms/Targets/$ID/PrivilegedSessionManagement"
+		$URI = "$($psPASSession.BaseURI)/API/Platforms/Targets/$ID/PrivilegedSessionManagement"
+
+		$BoundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove ID
+
+		$PlatformPSMConfig = Get-PASPlatformPSMConfig -ID $ID
+		if ($null -ne $PlatformPSMConfig) {
+			Format-PutRequestObject -InputObject $PlatformPSMConfig -boundParameters $BoundParameters -ParametersToKeep PSMServerID
+		}
 
 		#Request body
-		$Body = $PSBoundParameters | Get-PASParameter -ParametersToRemove ID | ConvertTo-Json
+		$Body = $BoundParameters | ConvertTo-Json
 
 		if ($PSCmdlet.ShouldProcess($ID, 'Update Platform PSM Config')) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
 		}
 

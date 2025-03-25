@@ -7,7 +7,7 @@ Function Get-PASComponentDetail {
 			ValueFromPipelinebyPropertyName = $true
 		)]
 		[ValidateNotNullOrEmpty()]
-		[ValidateSet('PVWA', 'SessionManagement', 'CPM', 'AIM')]
+		[ValidateSet('PVWA', 'SessionManagement', 'CPM', 'AIM', 'PTA')]
 		[string]$ComponentID
 
 	)
@@ -18,11 +18,18 @@ Function Get-PASComponentDetail {
 
 	PROCESS {
 
+		if ($PSBoundParameters['ComponentID'] -eq 'PTA') {
+
+			Assert-VersionRequirement -RequiredVersion 12.0
+			Assert-VersionRequirement -SelfHosted
+
+		}
+
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/ComponentsMonitoringDetails/$ComponentID"
+		$URI = "$($psPASSession.BaseURI)/api/ComponentsMonitoringDetails/$ComponentID"
 
 		#send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET
 
 		If ($null -ne $result) {
 

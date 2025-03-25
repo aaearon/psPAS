@@ -54,8 +54,9 @@ function Set-PASUser {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
+		[AllowEmptyCollection()]
 		[ValidateSet('PIMSU', 'PSM', 'PSMP', 'PVWA', 'WINCLIENT', 'PTA', 'PACLI', 'NAPI', 'XAPI', 'HTTPGW',
-			'EVD', 'PIMSu', 'AIMApp', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
+			'EVD', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
 		[string[]]$unAuthorizedInterfaces,
 
 		[parameter(
@@ -113,9 +114,9 @@ function Set-PASUser {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
-		[ValidateSet('AddSafes', 'AuditUsers', 'AddUpdateUsers', 'ResetUsersPasswords', 'ActivateUsers',
-			'AddNetworkAreas', 'ManageDirectoryMapping', 'ManageServerFileCategories', 'BackupAllSafes',
-			'RestoreAllSafes')]
+		[AllowEmptyCollection()]
+		[ValidateSet('AddSafes', 'AuditUsers', 'AddUpdateUsers', 'ResetUsersPasswords', 'ActivateUsers', 'AddNetworkAreas',
+			'ManageDirectoryMapping', 'ManageServerFileCategories', 'BackupAllSafes', 'RestoreAllSafes')]
 		[string[]]$vaultAuthorization,
 
 		[parameter(
@@ -155,6 +156,29 @@ function Set-PASUser {
 			ParameterSetName = 'Gen1'
 		)]
 		[string]$Location,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[int]$userActivityLogRetentionDays,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateRange(0, 23)]
+		[int]$loginFromHour,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateRange(0, 23)]
+		[int]$loginToHour,
 
 		[parameter(
 			Mandatory = $false,
@@ -276,7 +300,6 @@ function Set-PASUser {
 		)]
 		[ValidateLength(0, 99)]
 		[string]$description,
-
 
 		[parameter(
 			Mandatory = $false,
@@ -412,8 +435,20 @@ function Set-PASUser {
 
 			'Gen2' {
 
+				If ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
+
+					Assert-VersionRequirement -RequiredVersion 13.2
+
+				}
+
 				#Create URL for request
-				$URI = "$Script:BaseURI/api/Users/$id"
+				$URI = "$($psPASSession.BaseURI)/api/Users/$id"
+
+				$UserObject = Get-PASUser -id $id
+				if ($null -ne $UserObject) {
+					Format-PutRequestObject -InputObject $UserObject -boundParameters $BoundParameters -ParametersToRemove id, lastSuccessfulLoginDate,
+					source, componentUser, groupsMembership, authenticationMethod
+				}
 
 				$boundParameters = $boundParameters | Format-PASUserObject
 
@@ -438,7 +473,7 @@ function Set-PASUser {
 				}
 
 				#Create URL for request
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Users/$($UserName | Get-EscapedString)"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Users/$($UserName | Get-EscapedString)"
 
 				$TypeName = 'psPAS.CyberArk.Vault.User'
 
@@ -464,7 +499,7 @@ function Set-PASUser {
 
 		if ($PSCmdlet.ShouldProcess($UserName, 'Update User Properties')) {
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
 			If ($null -ne $result) {
 

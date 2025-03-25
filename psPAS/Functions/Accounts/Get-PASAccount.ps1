@@ -13,20 +13,10 @@ function Get-PASAccount {
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen2Filter'
-		)]
-		[parameter(
-			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2Query'
 		)]
 		[string]$search,
 
-		[parameter(
-			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen2Filter'
-		)]
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
@@ -64,11 +54,6 @@ function Get-PASAccount {
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen2Filter'
-		)]
-		[parameter(
-			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2Query'
 		)]
 		[string[]]$sort,
@@ -76,9 +61,10 @@ function Get-PASAccount {
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen2Filter'
+			ParameterSetName = 'Gen2Query'
 		)]
-		[string]$filter,
+		[ValidateRange(1, 1000)]
+		[int]$limit,
 
 		[parameter(
 			Mandatory = $false,
@@ -106,13 +92,16 @@ function Get-PASAccount {
 
 	BEGIN {
 
+		#Parameter to include as filter value in url
+		$Parameters = [Collections.Generic.List[String]]@('modificationTime', 'SafeName')
+
 	}#begin
 
 	PROCESS {
 
 		#Get Parameters to include in request
-		$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove modificationTime, SafeName
-		$filterParameters = $PSBoundParameters | Get-PASParameter -ParametersToKeep modificationTime, SafeName
+		$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove $Parameters
+		$filterParameters = $PSBoundParameters | Get-PASParameter -ParametersToKeep $Parameters
 		$FilterString = $filterParameters | ConvertTo-FilterString
 
 		switch ($PSCmdlet.ParameterSetName) {
@@ -150,7 +139,7 @@ function Get-PASAccount {
 				$typeName = 'psPAS.CyberArk.Vault.Account.V10'
 
 				#define base URL
-				$URI = "$Script:BaseURI/api/Accounts"
+				$URI = "$($psPASSession.BaseURI)/api/Accounts"
 
 			}
 
@@ -160,7 +149,7 @@ function Get-PASAccount {
 				$typeName = 'psPAS.CyberArk.Vault.Account'
 
 				#Create request URL
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Accounts"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Accounts"
 
 			}
 
@@ -198,7 +187,7 @@ function Get-PASAccount {
 		}
 
 		#Send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession -TimeoutSec $TimeoutSec
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET -TimeoutSec $TimeoutSec
 
 		If ($null -ne $result) {
 
@@ -284,8 +273,11 @@ function Get-PASAccount {
 
 				default {
 
+					#Get default parameters to pass to Get-NextLink
+					$DefaultParams = $PSBoundParameters | Get-PASParameter -ParametersToKeep SavedFilter, TimeoutSec
+
 					#return list
-					$return = $Result | Get-NextLink -TimeoutSec $TimeoutSec
+					$return = $Result | Get-NextLink @DefaultParams
 
 					break
 

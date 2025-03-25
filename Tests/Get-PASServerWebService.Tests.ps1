@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -34,19 +44,21 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 	}
 
 	InModuleScope $(Split-Path (Split-Path (Split-Path -Parent $PSCommandPath) -Parent) -Leaf ) {
-		BeforeEach {
-			Mock Invoke-PASRestMethod -MockWith {
-				[PSCustomObject]@{
-					'ServerName'            = 'Val1';
-					'ServerID'              = 'Val2';
-					'ApplicationName'       = 'AppName';
-					'AuthenticationMethods' = 'SomeThing'
-				}
-			}
 
-			$response = Get-PASServerWebService -BaseURI 'https://SomeURL' -PVWAAppName SomeApp
-		}
 		Context 'Input' {
+
+			BeforeEach {
+				Mock Invoke-PASRestMethod -MockWith {
+					[PSCustomObject]@{
+						'ServerName'            = 'Val1'
+						'ServerID'              = 'Val2'
+						'ApplicationName'       = 'AppName'
+						'AuthenticationMethods' = 'SomeThing'
+					}
+				}
+				$Script:psPASSession.BaseURI = 'https://SomeURL/SomeApp'
+				$response = Get-PASServerWebService -BaseURI 'https://SomeURL' -PVWAAppName SomeApp -UseGen1API
+			}
 
 			It 'sends request' {
 
@@ -58,9 +70,21 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/WebServices/PIMServices.svc/Verify"
+					$URI -eq 'https://SomeURL/SomeApp/WebServices/PIMServices.svc/Verify'
 
-				} -Times 1 -Exactly -Scope It
+				} #-Times 1 -Exactly -Scope It
+
+			}
+
+			It 'sends request to expected Gen2 endpoint' {
+
+				Get-PASServerWebService -BaseURI 'https://SomeURL' -PVWAAppName SomeApp
+
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$URI -eq "$($Script:psPASSession.BaseURI)/API/verify/"
+
+				} #-Times 1 -Exactly -Scope It
 
 			}
 
@@ -80,6 +104,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 		Context 'Output' {
 
+			BeforeEach {
+				Mock Invoke-PASRestMethod -MockWith {
+					[PSCustomObject]@{
+						'ServerName'            = 'Val1'
+						'ServerID'              = 'Val2'
+						'ApplicationName'       = 'AppName'
+						'AuthenticationMethods' = 'SomeThing'
+					}
+				}
+				$Script:psPASSession.BaseURI = 'https://SomeURL/SomeApp'
+				$response = Get-PASServerWebService -BaseURI 'https://SomeURL' -PVWAAppName SomeApp -UseGen1API
+			}
+
 			It 'provides output' {
 
 				$response | Should -Not -BeNullOrEmpty
@@ -88,7 +125,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			It 'has output with expected number of properties' {
 
-				($response | Get-Member -MemberType NoteProperty).length | Should -Be 4
+				($response | Get-Member -MemberType NoteProperty).length | Should -Be 5
 
 			}
 

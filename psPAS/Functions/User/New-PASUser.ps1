@@ -39,8 +39,9 @@ function New-PASUser {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
+		[AllowEmptyCollection()]
 		[ValidateSet('PIMSU', 'PSM', 'PSMP', 'PVWA', 'WINCLIENT', 'PTA', 'PACLI', 'NAPI', 'XAPI', 'HTTPGW',
-			'EVD', 'PIMSu', 'AIMApp', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
+			'EVD', 'CPM', 'PVWAApp', 'PSMApp', 'AppPrv', 'AIMApp', 'PSMPApp', 'GUI')]
 		[string[]]$unAuthorizedInterfaces,
 
 		[parameter(
@@ -98,9 +99,9 @@ function New-PASUser {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
-		[ValidateSet('AddSafes', 'AuditUsers', 'AddUpdateUsers', 'ResetUsersPasswords', 'ActivateUsers',
-			'AddNetworkAreas', 'ManageDirectoryMapping', 'ManageServerFileCategories', 'BackupAllSafes',
-			'RestoreAllSafes')]
+		[ValidateSet('AddSafes', 'AuditUsers', 'AddUpdateUsers', 'ResetUsersPasswords', 'ActivateUsers', 'AddNetworkAreas',
+			'ManageDirectoryMapping', 'ManageServerFileCategories', 'BackupAllSafes', 'RestoreAllSafes')]
+		[AllowEmptyCollection()]
 		[string[]]$vaultAuthorization,
 
 		[parameter(
@@ -140,6 +141,29 @@ function New-PASUser {
 			ParameterSetName = 'Gen1'
 		)]
 		[string]$Location,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[int]$userActivityLogRetentionDays,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateRange(0, 23)]
+		[int]$loginFromHour,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateRange(0, 23)]
+		[int]$loginToHour,
 
 		[parameter(
 			Mandatory = $false,
@@ -399,8 +423,14 @@ function New-PASUser {
 
 				Assert-VersionRequirement -RequiredVersion 10.9
 
+				If ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
+
+					Assert-VersionRequirement -RequiredVersion 13.2
+
+				}
+
 				#Create URL for request
-				$URI = "$Script:BaseURI/api/Users"
+				$URI = "$($psPASSession.BaseURI)/api/Users"
 
 				$boundParameters = $boundParameters | Format-PASUserObject
 
@@ -415,7 +445,7 @@ function New-PASUser {
 				Assert-VersionRequirement -MaximumVersion 12.3
 
 				#Create URL for request
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Users"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Users"
 
 				If ($PSBoundParameters.ContainsKey('ExpiryDate')) {
 
@@ -441,7 +471,7 @@ function New-PASUser {
 		if ($PSCmdlet.ShouldProcess($UserName, 'Create User')) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
 			If ($null -ne $result) {
 

@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -66,6 +76,17 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 				$Value['filter'] | Should -Match ' AND '
 				$Value['filter'] | Should -Match 'Property1 eq Value'
 				$Value['filter'] | Should -Match 'Property2 eq Another Value'
+				$Value['filter'] | Should -Match 'modificationTime gte 1577836800'
+
+			}
+
+			It 'converts hashtable to expected filter string with quoted values' {
+
+				$Value = $InputObj | ConvertTo-FilterString -QuoteValue
+
+				$Value['filter'] | Should -Match ' AND '
+				$Value['filter'] | Should -Match 'Property1 eq "Value"'
+				$Value['filter'] | Should -Match 'Property2 eq "Another Value"'
 				$Value['filter'] | Should -Match 'modificationTime gte 1577836800'
 
 			}

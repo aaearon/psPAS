@@ -83,7 +83,7 @@ function Add-PASApplication {
 	PROCESS {
 
 		#WebService URL
-		$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Applications"
+		$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Applications"
 
 		#Get request parameters
 		$boundParameters = $PSBoundParameters | Get-PASParameter
@@ -91,7 +91,7 @@ function Add-PASApplication {
 		If ($PSBoundParameters.ContainsKey('ExpirationDate')) {
 
 			#Convert ExpiryDate to string in Required format
-			$Date = (Get-Date $ExpirationDate -Format MM-dd-yyyy).ToString()
+			$Date = (Get-Date $ExpirationDate -Format MM/dd/yyyy).ToString()
 
 			#Include date string in request
 			$boundParameters['ExpirationDate'] = $Date
@@ -106,7 +106,7 @@ function Add-PASApplication {
 		} | ConvertTo-Json
 
 		#Send Request
-		Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body -WebSession $Script:WebSession
+		Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
 	}#process
 

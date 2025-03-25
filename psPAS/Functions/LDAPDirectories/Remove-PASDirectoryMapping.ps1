@@ -16,18 +16,19 @@ function Remove-PASDirectoryMapping {
 	)
 
 	BEGIN {
+		Assert-VersionRequirement -SelfHosted
 		Assert-VersionRequirement -RequiredVersion 11.1
 	}#begin
 
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/$MappingID/"
+		$URI = "$($psPASSession.BaseURI)/api/Configuration/LDAP/Directories/$DirectoryName/Mappings/$MappingID/"
 
 		if ($PSCmdlet.ShouldProcess($MappingID, 'Delete Directory Mapping')) {
 
 			#send request to web service
-			Invoke-PASRestMethod -Uri $URI -Method DELETE -WebSession $Script:WebSession
+			Invoke-PASRestMethod -Uri $URI -Method DELETE
 
 		}
 

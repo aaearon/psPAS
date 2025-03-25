@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -53,6 +63,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 			$response = $InputObj | New-PASRequest
 
 		}
+
 		Context 'Mandatory Parameters' {
 
 			$Parameters = @{Parameter = 'AccountID' }
@@ -61,13 +72,11 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				param($Parameter)
 
-				(Get-Command New-PASRequest).Parameters["$Parameter"].Attributes.Mandatory | Should -Be $true
+				(Get-Command New-PASRequest).Parameters["$Parameter"].Attributes.Mandatory | Select-Object -Unique | Should -Be $true
 
 			}
 
 		}
-
-
 
 		Context 'Input' {
 
@@ -81,7 +90,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/API/MyRequests"
+					$URI -eq "$($Script:psPASSession.BaseURI)/API/MyRequests"
 
 				} -Times 1 -Exactly -Scope It
 
@@ -130,9 +139,64 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 			}
 
 			It 'throws error if version requirement not met' {
-				$Script:ExternalVersion = '1.0'
+				$psPASSession.ExternalVersion = '1.0'
 				{ $InputObj | New-PASRequest } | Should -Throw
-				$Script:ExternalVersion = '0.0'
+				$psPASSession.ExternalVersion = '0.0'
+			}
+
+			It 'has request body with expected BulkItems property' {
+				$Requests = $InputObj | New-PASRequestObject
+				New-PASRequest -BulkItems $Requests
+
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).BulkItems -ne $null
+
+				} -Times 1 -Exactly -Scope It
+
+
+			}
+
+			It 'has BulkItems property with expected format' {
+
+				$Script:RequestBody.BulkItems.Operation | Should -Be 'Add'
+
+			}
+
+			It 'has request body with expected SearchParam' {
+
+				New-PASRequest -Search SomeSearchTerm
+
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).BulkFilter -ne $null
+
+				} -Times 1 -Exactly -Scope It
+			}
+
+			It 'has FilterParams property with expected format' {
+				$Script:RequestBody.BulkFilter.FilterParams.SearchParam.Search | Should -Be 'SomeSearchTerm'
+			}
+
+			It 'has request body with expected AccountsFilters' {
+
+				New-PASRequest -SavedFilter Favorites
+
+				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
+
+					$Script:RequestBody = $Body | ConvertFrom-Json
+
+					($Script:RequestBody).BulkFilter -ne $null
+
+				} -Times 1 -Exactly -Scope It
+			}
+
+			It 'has FilterParams property with expected format' {
+				$Script:RequestBody.BulkFilter.FilterParams.AccountsFilters.SavedFilter | Should -Be 'Favorites'
 			}
 
 		}

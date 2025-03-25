@@ -26,12 +26,14 @@ function Get-PASAccountACL {
 		[string]$AccountUserName
 	)
 
-	BEGIN { }#begin
+	BEGIN {
+		Assert-VersionRequirement -SelfHosted
+	}#begin
 
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Account/$($AccountAddress |
+		$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Account/$($AccountAddress |
 
             Get-EscapedString)|$($AccountUserName |
 
@@ -40,7 +42,7 @@ function Get-PASAccountACL {
                     Get-EscapedString)/PrivilegedCommands/"
 
 		#Send request to Web Service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession #DevSkim: ignore DS104456
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET #DevSkim: ignore DS104456
 
 		If ($null -ne $result) {
 

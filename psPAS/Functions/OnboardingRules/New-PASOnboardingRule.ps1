@@ -2,13 +2,6 @@
 function New-PASOnboardingRule {
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Gen2')]
 	param(
-		[parameter(
-			Mandatory = $true,
-			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen1'
-		)]
-		[ValidateLength(1, 99)]
-		[string]$DecisionPlatformId,
 
 		[parameter(
 			Mandatory = $true,
@@ -21,14 +14,6 @@ function New-PASOnboardingRule {
 		[parameter(
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen1'
-		)]
-		[ValidateLength(1, 28)]
-		[string]$DecisionSafeName,
-
-		[parameter(
-			Mandatory = $true,
-			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
 		[ValidateLength(1, 28)]
@@ -37,17 +22,33 @@ function New-PASOnboardingRule {
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[boolean]$IsAdminIDFilter,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen1'
 		)]
-		[ValidateSet('Yes', 'No')]
-		[String]$IsAdminUIDFilter,
+		[ValidateLength(1, 28)]
+		[string]$DecisionSafeName,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[ValidateLength(1, 99)]
+		[string]$DecisionPlatformId,
 
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'Gen2'
+			ParameterSetName = 'Gen1'
 		)]
-		[boolean]$IsAdminIDFilter,
+		[ValidateSet('Yes', 'No')]
+		[String]$IsAdminUIDFilter,
 
 		[parameter(
 			Mandatory = $false,
@@ -121,7 +122,7 @@ function New-PASOnboardingRule {
 	PROCESS {
 
 		#Create URL for request
-		$URI = "$Script:BaseURI/api/AutomaticOnboardingRules"
+		$URI = "$($psPASSession.BaseURI)/api/AutomaticOnboardingRules"
 
 		#create request body
 		$body = $PSBoundParameters | Get-PASParameter | ConvertTo-Json
@@ -148,7 +149,7 @@ function New-PASOnboardingRule {
 		if ($PSCmdlet.ShouldProcess($SafeName, "Add On-Boarding Rule Using '$PlatformID'")) {
 
 			#send request to web service
-			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body -WebSession $Script:WebSession
+			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
 			If ($null -ne $result) {
 

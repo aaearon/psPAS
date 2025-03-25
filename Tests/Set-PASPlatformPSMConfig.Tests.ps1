@@ -20,9 +20,19 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 		}
 
 		$Script:RequestBody = $null
-		$Script:BaseURI = 'https://SomeURL/SomeApp'
-		$Script:ExternalVersion = '0.0'
-		$Script:WebSession = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+		$psPASSession = [ordered]@{
+			BaseURI            = 'https://SomeURL/SomeApp'
+			User               = $null
+			ExternalVersion    = [System.Version]'0.0'
+			WebSession         = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+			StartTime          = $null
+			ElapsedTime        = $null
+			LastCommand        = $null
+			LastCommandTime    = $null
+			LastCommandResults = $null
+		}
+
+		New-Variable -Name psPASSession -Value $psPASSession -Scope Script -Force
 
 	}
 
@@ -39,14 +49,16 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 			Mock Invoke-PASRestMethod -MockWith {
 				[PSCustomObject]@{'Prop1' = 'Val1'; 'Prop2' = 'Val2' }
 			}
-
+			Mock Get-PASPlatformPSMConfig -MockWith {
+				[PSCustomObject]@{'PSMServerID' = 'SomePSMServer' }
+			}
 			$response = Set-PASPlatformPSMConfig -ID 42 -PSMServerID SomePSMServer
 		}
 		Context 'Input' {
 
 			It 'sends request' {
 
-				Assert-MockCalled Invoke-PASRestMethod -Times 1 -Exactly -Scope It
+				Assert-MockCalled Invoke-PASRestMethod -Scope It
 
 			}
 
@@ -54,9 +66,9 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
 
-					$URI -eq "$($Script:BaseURI)/API/Platforms/Targets/42/PrivilegedSessionManagement"
+					$URI -eq "$($Script:psPASSession.BaseURI)/API/Platforms/Targets/42/PrivilegedSessionManagement"
 
-				} -Times 1 -Exactly -Scope It
+				} -Scope It
 
 			}
 
@@ -69,15 +81,17 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 			It 'sends request with expected body' {
 
 				Assert-MockCalled Invoke-PASRestMethod -ParameterFilter {
-					$($Body | ConvertFrom-Json | Select-Object -ExpandProperty PSMServerID) -eq 'SomePSMServer'
-				} -Times 1 -Exactly -Scope It
+					If ($null -ne $Body) {
+						$($Body | ConvertFrom-Json | Select-Object -ExpandProperty PSMServerID) -eq 'SomePSMServer'
+					}
+				} -Scope It -Times 1
 
 			}
 
 			It 'throws error if version requirement not met' {
-				$Script:ExternalVersion = '1.0'
+				$psPASSession.ExternalVersion = '1.0'
 				{ Set-PASPlatformPSMConfig -ID 42 -PSMServerID SomePSMServer } | Should -Throw
-				$Script:ExternalVersion = '0.0'
+				$psPASSession.ExternalVersion = '0.0'
 			}
 
 		}

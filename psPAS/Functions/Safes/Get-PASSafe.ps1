@@ -40,7 +40,7 @@ function Get-PASSafe {
 		[Boolean]$extendedDetails,
 
 		[parameter(
-			Mandatory = $false,
+			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen1-byName'
 		)]
@@ -68,7 +68,7 @@ function Get-PASSafe {
 		[string]$query,
 
 		[parameter(
-			Mandatory = $false,
+			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $false,
 			ParameterSetName = 'Gen1-byAll'
 		)]
@@ -78,6 +78,11 @@ function Get-PASSafe {
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen1-byName'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'Gen1-byAll'
 		)]
 		[switch]$UseGen1API,
 
@@ -136,7 +141,7 @@ function Get-PASSafe {
 				$returnProperty = 'value'
 
 				#define base URL
-				$URI = "$Script:BaseURI/API/Safes"
+				$URI = "$($psPASSession.BaseURI)/API/Safes"
 
 				If ($null -ne $queryString) {
 
@@ -157,7 +162,7 @@ function Get-PASSafe {
 				Assert-VersionRequirement -RequiredVersion 12.2
 
 				#define base URL
-				$URI = "$Script:BaseURI/API/Safes/$($SafeName | Get-EscapedString)"
+				$URI = "$($psPASSession.BaseURI)/API/Safes/$($SafeName | Get-EscapedString)"
 
 				$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove SafeName
 
@@ -181,7 +186,7 @@ function Get-PASSafe {
 				Assert-VersionRequirement -MaximumVersion 12.3
 
 				#Create URL for Gen1 API requests
-				$URI = "$Script:BaseURI/WebServices/PIMServices.svc/Safes"
+				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Safes"
 
 			}
 
@@ -222,7 +227,7 @@ function Get-PASSafe {
 		}
 
 		#send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession -TimeoutSec $TimeoutSec
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET -TimeoutSec $TimeoutSec
 
 		switch ($PSCmdlet.ParameterSetName) {
 
@@ -236,7 +241,7 @@ function Get-PASSafe {
 
 					For ( $Offset = $Limit ; $Offset -lt $Total ; $Offset += $Limit ) {
 
-						$Null = $Safes.AddRange((Invoke-PASRestMethod -Uri "$URI`?limit=$Limit&OffSet=$Offset$searchQuery" -Method GET -WebSession $Script:WebSession -TimeoutSec $TimeoutSec).Safes)
+						$Null = $Safes.AddRange((Invoke-PASRestMethod -Uri "$URI`?limit=$Limit&OffSet=$Offset$searchQuery" -Method GET -TimeoutSec $TimeoutSec).Safes)
 
 					}
 

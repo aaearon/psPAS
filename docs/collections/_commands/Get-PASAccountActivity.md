@@ -14,8 +14,14 @@ Returns activities for an account.
 
 ## SYNTAX
 
+### Gen2 (Default)
 ```
 Get-PASAccountActivity [-AccountID] <String> [<CommonParameters>]
+```
+
+### Gen1
+```
+Get-PASAccountActivity [-AccountID] <String> [-UseGen1API] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -29,6 +35,13 @@ Get-PASAccount -Keywords root -Safe UNIXSafe | Get-PASAccountActivity
 ```
 
 Will return the account activity for the account output by Get-PASAccount
+
+### EXAMPLE 2
+```
+Get-PASAccountActivity -id 123_4 -useGen1API
+```
+
+Will return the account activity for the account using the Gen1 API
 
 ## PARAMETERS
 
@@ -44,6 +57,23 @@ Required: True
 Position: 1
 Default value: None
 Accept pipeline input: True (ByPropertyName)
+Accept wildcard characters: False
+```
+
+### -UseGen1API
+Specify to force use of the Gen1 API
+
+Gen1 API is Deprecated from version 13.2
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Gen1
+Aliases: UseClassicAPI
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
 Accept wildcard characters: False
 ```
 

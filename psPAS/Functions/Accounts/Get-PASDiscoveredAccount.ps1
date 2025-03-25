@@ -51,13 +51,6 @@ Function Get-PASDiscoveredAccount {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'byQuery'
 		)]
-		[int]$offset,
-
-		[parameter(
-			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true,
-			ParameterSetName = 'byQuery'
-		)]
 		[ValidateRange(1, 1000)]
 		[int]$limit
 
@@ -75,7 +68,7 @@ Function Get-PASDiscoveredAccount {
 	Process {
 
 		#Create URL for Request
-		$URI = "$Script:BaseURI/api/DiscoveredAccounts"
+		$URI = "$($psPASSession.BaseURI)/api/DiscoveredAccounts"
 
 		switch ($PSCmdlet.ParameterSetName) {
 
@@ -123,7 +116,7 @@ Function Get-PASDiscoveredAccount {
 		}
 
 		#Send request to web service
-		$result = Invoke-PASRestMethod -Uri $URI -Method GET -WebSession $Script:WebSession
+		$result = Invoke-PASRestMethod -Uri $URI -Method GET
 
 		If ($null -ne $Result) {
 

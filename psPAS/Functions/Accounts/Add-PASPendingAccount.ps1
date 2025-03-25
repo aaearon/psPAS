@@ -138,12 +138,15 @@ function Add-PASPendingAccount {
 		[string]$MachineOSFamily
 	)
 
-	BEGIN { }#begin
+	BEGIN {
+		#!Depracated above 13.2
+		Assert-VersionRequirement -MaximumVersion 13.2
+	}#begin
 
 	PROCESS {
 
 		#Create URL for Request
-		$URI = "$Script:BaseURI/WebServices/PIMServices.svc/PendingAccounts"
+		$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/PendingAccounts"
 
 		#Get all parameters that will be sent in the request
 		$boundParameters = $PSBoundParameters | Get-PASParameter
@@ -168,7 +171,7 @@ function Add-PASPendingAccount {
 		} | ConvertTo-Json
 
 		#send request to PAS web service
-		Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body -WebSession $Script:WebSession
+		Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
 	}#process
 

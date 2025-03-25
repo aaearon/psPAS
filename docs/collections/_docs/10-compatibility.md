@@ -2,23 +2,31 @@
 title: "Compatibility"
 permalink: /docs/compatibility/
 excerpt: "Module Compatibility"
-last_modified_at: 2021-07-25zT01:33:52-00:00
+last_modified_at: 2023-03-06T01:23:45-00:00
 toc: false
 ---
 
-Your version of CyberArk determines which functions of psPAS will be supported.
+This section lists the commands available in psPAS as well as any relevant version requirements.
+
+Depending on your version of CyberArk, different psPAS commands and parameters are available.
+
+The most recent psPAS version should work with your particular CyberArk version and be able to be used with it.
+
+The version requirements for certain parameters are described in greater detail in the command's documentation.
 
 ## Function List
 
 Check the below table to determine what functions are available for you to use:
 
-The CyberArk Version listed is the minimum required to use the function.
+The minimum required version of CyberArk to use the function is listed.
 {: .notice--info}
 
 CyberArk Version may affect available capabilities or function parameters. See [Notes](#notes) for more details.
 {: .notice--warning}
 
-If you are using version 9.7+, and the function being invoked requires version 9.8+, psPAS will attempt to confirm that your version of CyberArk meets the minimum version requirement.
+The module will take steps to verify that your version of CyberArk meets any psPAS command's minimum version requirement.
+
+If version requirement criteria are not met, operations may be prevented.
 {: .notice--success}
 
 **Function Name**                                                                        | **CyberArk Version**                               | **Description**
@@ -47,7 +55,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
 [`Remove-PASAccount`][Remove-PASAccount]                                                 |**9.3** ([Notes](#remove-pasaccount))               |Deletes an account
 [`Set-PASAccount`][Set-PASAccount]                                                       |**9.5** ([Notes](#set-pasaccount))                  |Updates details of an account.
 [`Invoke-PASCPMOperation`][Invoke-PASCPMOperation]                                       |**9.7** ([Notes](#invoke-pascpmoperation))          |Invoke CPM verify, change & reconcile tasks.
-[`Unlock-PASAccount`][Unlock-PASAccount]                                                 |**9.10**                                            |Checks in an exclusive-use account.
+[`Unlock-PASAccount`][Unlock-PASAccount]                                                 |**9.10**([Notes](#unlock-pasaccount))               |Checks-in / Unlocks an exclusive-use account.
 [`Add-PASApplication`][Add-PASApplication]                                               |**9.1**                                             |Adds a new application
 [`Add-PASApplicationAuthenticationMethod`][Add-PASApplicationAuthenticationMethod]       |**9.1**                                             |Add authentication method to an application
 [`Get-PASApplication`][Get-PASApplication]                                               |**9.1**                                             |Returns details of applications
@@ -87,7 +95,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
 [`Get-PASSafeShareLogo`][Get-PASSafeShareLogo]                                           | **9.7**                                            |Returns details of SafeShare Logo
 [`Get-PASServer`][Get-PASServer]                                                         | **9.7**                                            |Returns details of the Web Service Server
 [`Get-PASServerWebService`][Get-PASServerWebService]                                     | **9.7**                                            |Returns details of the Web Service
-[`Get-PASComponentDetail`][Get-PASComponentDetail]                                       | **10.1**                                           |Returns details about component instances.
+[`Get-PASComponentDetail`][Get-PASComponentDetail]                                       | **10.1** ([Notes](#get-pascomponentdetail))        |Returns details about component instances.
 [`Get-PASComponentSummary`][Get-PASComponentSummary]                                     | **10.1**                                           |Returns consolidated information about components.
 [`Add-PASGroupMember`][Add-PASGroupMember]                                               | **9.7** ([Notes](#add-pasgroupmember))             |Adds a user as a group member
 [`Get-PASLoggedOnUser`][Get-PASLoggedOnUser]                                             | **9.7**                                            |Returns details of the logged on user
@@ -166,8 +174,72 @@ If you are using version 9.7+, and the function being invoked requires version 9
 [`Set-PASGroup`][Set-PASGroup]                                                           |**12.0**                                            |Update CyberArk groups
 [`Get-PASPlatformSummary`][Get-PASPlatformSummary]                                       |**12.2**                                            |Get basic information on current platform system types
 [`Enable-PASUser`][Enable-PASUser]                                                       |**12.6**                                            |Enable CyberArk Users
-[`Disable-PASUser`][Enable-PASUser]                                                      |**12.6**                                            |Disable CyberArk Users
+[`Disable-PASUser`][Disable-PASUser]                                                     |**12.6**                                            |Disable CyberArk Users
+[`Publish-PASDiscoveredAccount`][Publish-PASDiscoveredAccount]                           |**12.6**                                            |Onboard Discovered Accounts
+[`Get-PASLinkedAccount`][Get-PASLinkedAccount]                                           |**12.2**                                            |Get details of linked accounts
+[`Get-PASLinkedGroup`][Get-PASLinkedGroup]                                               |**12.2**                                            |Get details of linked groups
+[`Add-PASPersonalAdminAccount`][Add-PASPersonalAdminAccount]                             |**12.6**                                            |Add Personal Admin Account (Privilege Cloud Only).
+[`Get-PASPTAGlobalCatalog`][Get-PASPTAGlobalCatalog]                                     |**13.0**                                            |Get Global Catalog connectivity details for PTA.
+[`Add-PASPTAGlobalCatalog`][Add-PASPTAGlobalCatalog]                                     |**13.0**                                            |Add Global Catalog connectivity details to PTA.
+[`Get-PASUserTypeInfo`][Get-PASUserTypeInfo]                                             |**13.2**                                            |Get User Type Info
+[`Get-PASPTARiskEvent`][Get-PASPTARiskEvent]                                             |**13.2** ([Notes](#get-pasptariskevent))            |Get PTA Risk Events
+[`Set-PASPTARiskEvent`][Set-PASPTARiskEvent]                                             |**13.2** ([Notes](#set-pasptariskevent))            |Update PTA Risk Events
+[`Get-PASPTARiskSummary`][Get-PASPTARiskSummary]                                         |**13.2**                                            |Get PTA Risk Summary
+[`New-PASRequestObject`][New-PASRequestObject]                                           |**---**                                             |Format an object to include in an request list
+[`Add-PASPTAExcludedTarget`][Add-PASPTAExcludedTarget]                                   |**14.0**                                             |Excludes a PTA Monitored Target
+[`Add-PASPTAIncludedTarget`][Add-PASPTAIncludedTarget]                                   |**14.0**                                             |Includes a PTA Monitored Target
+[`Add-PASPTAPrivilegedGroup`][Add-PASPTAPrivilegedGroup]                                 |**14.0**                                             |Configures a PTA Privileged Group
+[`Add-PASPTAPrivilegedUser`][Add-PASPTAPrivilegedUser]                                   |**14.0**                                             |Configures a PTA Privileged User
+[`Get-PASPTAExcludedTarget`][Get-PASPTAExcludedTarget]                                   |**14.0**                                             |Get PTA Excluded Target
+[`Get-PASPTAIncludedTarget`][Get-PASPTAIncludedTarget]                                   |**14.0**                                             |Get PTA Included target
+[`Get-PASPTAPrivilegedGroup`][Get-PASPTAPrivilegedGroup]                                 |**14.0**                                             |Get PTA Privileged Group
+[`Get-PASPTAPrivilegedUser`][Get-PASPTAPrivilegedUser]                                   |**14.0**                                             |Get PTA Privileged User
+[`Remove-PASPTAExcludedTarget`][Remove-PASPTAExcludedTarget]                             |**14.0**                                             |Remove PTA Excluded Target
+[`Remove-PASPTAIncludedTarget`][Remove-PASPTAIncludedTarget]                             |**14.0**                                             |Remove PTA Included Target
+[`Remove-PASPTAPrivilegedGroup`][Remove-PASPTAPrivilegedGroup]                           |**14.0**                                             |Remove PTA Privileged Group
+[`Remove-PASPTAPrivilegedUser`][Remove-PASPTAPrivilegedUser]                             |**14.0**                                             |Remove PTA Privileged User
+[`Set-PASIPAllowList`][Set-PASIPAllowList]                                               |**P Cloud Only**                                     |Set P Cloud IP Allow List
+[`Get-PASIPAllowList`][Get-PASIPAllowList]                                               |**P Cloud Only**                                     |Get P Cloud IP Allow List
+[`Get-PASBYOKConfig`][Get-PASBYOKConfig]                                                 |**P Cloud Only**                                     |Get P Cloud BYOK Config
+[`Publish-PASDiscoveredLocalAccount`][Publish-PASDiscoveredLocalAccount]                 |**P Cloud Only**                                     |Publish P Cloud Discovered Local Account
+[`Remove-PASDiscoveredLocalAccount`][Remove-PASDiscoveredLocalAccount]                   |**P Cloud Only**                                     |Delete  P Cloud Discovered Local Account
+[`Get-PASDiscoveredLocalAccountActivity`][Get-PASDiscoveredLocalAccountActivity]         |**P Cloud Only**                                     |Get  P Cloud Discovered Local Account Activity
+[`Get-PASDiscoveredLocalAccount`][Get-PASDiscoveredLocalAccount]                         |**P Cloud Only**                                     |Get  P Cloud Discovered Local Account
+[`Clear-PASDiscoveredLocalAccount`][Clear-PASDiscoveredLocalAccount]                     |**P Cloud Only**                                     |Clear all  P Cloud Discovered Local Accounts
+[`Add-PASDiscoveredLocalAccount`][Add-PASDiscoveredLocalAccount]                         |**P Cloud Only**                                     |Add  P Cloud Discovered Local Account
 
+[Get-PASIPAllowList]:/commands/Get-PASIPAllowList
+[Set-PASIPAllowList]:/commands/Set-PASIPAllowList
+[Get-PASBYOKConfig]:/commands/Get-PASBYOKConfig
+[Publish-PASDiscoveredLocalAccount]:/commands/Publish-PASDiscoveredLocalAccount
+[Get-PASDiscoveredLocalAccountActivity]:/commands/Get-PASDiscoveredLocalAccountActivity
+[Get-PASDiscoveredLocalAccount]:/commands/Get-PASDiscoveredLocalAccount
+[Clear-PASDiscoveredLocalAccount]:/commands/Clear-PASDiscoveredLocalAccount
+[Add-PASDiscoveredLocalAccount]:/commands/Add-PASDiscoveredLocalAccount
+[Remove-PASDiscoveredLocalAccount]:/commands/Remove-PASDiscoveredLocalAccount
+[Add-PASPTAExcludedTarget]:/commands/Add-PASPTAExcludedTarget
+[Add-PASPTAIncludedTarget]:/commands/Add-PASPTAIncludedTarget
+[Add-PASPTAPrivilegedGroup]:/commands/Add-PASPTAPrivilegedGroup
+[Add-PASPTAPrivilegedUser]:/commands/Add-PASPTAPrivilegedUser
+[Get-PASPTAExcludedTarget]:/commands/Get-PASPTAExcludedTarget
+[Get-PASPTAIncludedTarget]:/commands/Get-PASPTAIncludedTarget
+[Get-PASPTAPrivilegedGroup]:/commands/Get-PASPTAPrivilegedGroup
+[Get-PASPTAPrivilegedUser]:/commands/Get-PASPTAPrivilegedUser
+[Remove-PASPTAExcludedTarget]:/commands/Remove-PASPTAExcludedTarget
+[Remove-PASPTAIncludedTarget]:/commands/Remove-PASPTAIncludedTarget
+[Remove-PASPTAPrivilegedGroup]:/commands/Remove-PASPTAPrivilegedGroup
+[Remove-PASPTAPrivilegedUser]:/commands/Remove-PASPTAPrivilegedUser
+[New-PASRequestObject]:/commands/New-PASRequestObject
+[Get-PASUserTypeInfo]:/commands/Get-PASUserTypeInfo
+[Get-PASPTARiskEvent]:/commands/Get-PASPTARiskEvent
+[Set-PASPTARiskEvent]:/commands/Set-PASPTARiskEvent
+[Get-PASPTARiskSummary]:/commands/Get-PASPTARiskSummary
+[Get-PASPTAGlobalCatalog]:/commands/Get-PASPTAGlobalCatalog
+[Add-PASPTAGlobalCatalog]:/commands/Add-PASPTAGlobalCatalog
+[Get-PASLinkedAccount]:/commands/Get-PASLinkedAccount
+[Get-PASLinkedGroup]:/commands/Get-PASLinkedGroup
+[Add-PASPersonalAdminAccount]:/commands/Add-PASPersonalAdminAccount
+[Publish-PASDiscoveredAccount]:/commands/Publish-PASDiscoveredAccount
 [Enable-PASUser]:/commands/Enable-PASUser
 [Disable-PASUser]:/commands/Disable-PASUser
 [Get-PASPlatformSummary]:/commands/Get-PASPlatformSummary
@@ -337,7 +409,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
 ### Get-PASAccountGroup
 
 - Version 10.5 introduced a new API endpoint, "Get Safe account groups".
-  - This API is depreciated from version 12.6.
+  - This API is deprecated from version 12.6.
   - The "Get Safe account groups" API endpoint can be used by specifying the `-UseGen1API` parameter.
 
 ### Add-PASAccount
@@ -428,6 +500,14 @@ If you are using version 9.7+, and the function being invoked requires version 9
 
 - The functions related to requests (`Approve-PASRequest`, `Deny-PASRequest`, `Get-PASRequest`, `Get-PASRequestDetail`, `New-PASRequest` & `Remove-PASRequest`), are documented as supported from version 9.10.
   - Reports received from `psPAS` users, observing that these functions also work in version 9.9.
+- `New-PASRequest`
+  - Version 13.2 introduced a new API endpoint.
+  - Supports:
+    - Requests to access multiple accounts
+- `Get-PASRequest`
+  - Version 13.2 introduced a new API endpoint.
+  - Supports:
+    - Get status of requests to access multiple accounts
 
 ### Add-PASGroupMember
 
@@ -436,7 +516,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
     - `GroupID`
     - `memberID`
 - The Gen1 API endpoint can be used by using the `GroupName` & `UserName` parameters.
-- Gen1 API depreciated from 12.3
+- Gen1 API deprecated from 12.3
 
 ### Get-PASUser
 
@@ -449,13 +529,15 @@ If you are using version 9.7+, and the function being invoked requires version 9
 - Version 11.5 returns additional group membership  detail for user accounts.
 - Version 12.1 introduced new parameter to request `ExtendedDetails` for a user.
 - Version 12.2 introduced new `sort` parameter and ability to filter by UserName.
+- Version 13.2 introduced new `source` & `userStatus` parameters.
 
 ### New-PASUser
 
 - Version 10.9 introduced a new API endpoint.
   - Supports:
     - Additional property parameters.
-- Gen1 API depreciated from 12.3
+- Gen1 API deprecated from 12.3
+- Version 13.2 introduced new parameters: `userActivityLogRetentionDays`, `loginFromHour` & `loginToHour`
 
 ### Unblock-PASUser
 
@@ -463,7 +545,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
   - Requires Parameters:
     - `userID`
 - The Gen1 API endpoint can be used by using the `userName` parameter.
-- Gen1 API depreciated from 12.3
+- Gen1 API deprecated from 12.3
 
 ### Get-PASDirectory
 
@@ -489,11 +571,23 @@ If you are using version 9.7+, and the function being invoked requires version 9
   - Supports:
     - `UserActivityLogPeriod`.
 
+- Version 14.0 introduced new API parameters.
+  - Supports:
+    - `UsedQuota`
+    - `AuthorizedInterfaces`
+    - `EnableENEWhenDisconnected`
+
 ### Set-PASDirectoryMapping
 
 - Version 10.10 introduced a new API endpoint.
   - Supports:
     - `UserActivityLogPeriod`.
+
+- Version 14.0 introduced new API parameters.
+  - Supports:
+    - `UsedQuota`
+    - `AuthorizedInterfaces`
+    - `EnableENEWhenDisconnected`
 
 ### Add-PASDiscoveredAccount
 
@@ -511,7 +605,7 @@ If you are using version 9.7+, and the function being invoked requires version 9
     - New options for finding platforms
 - Version 11.4 introduced new API endpoints
   - Parameters added to enable more filtering options for querying target platforms
-  - Parameters addded to request details of dependent, group & rotational group platforms.
+  - Parameters added to request details of dependent, group & rotational group platforms.
 - Version 9.10+  When specifying PlatformID
   - if the platform properties contain a semicolon (';'), the API may not return the complete value.
     - noted for ChangeCommand, ReconcileCommand & ConnectionCommand properties
@@ -521,14 +615,15 @@ If you are using version 9.7+, and the function being invoked requires version 9
 - Version 11.1 introduced a new API endpoint.
   - Supports:
     - Delete User by ID
-- Gen1 API depreciated from 12.3
+- Gen1 API deprecated from 12.3
 
 ### Set-PASUser
 
 - Version 11.1 introduced a new API endpoint.
   - Supports:
     - Additional parameters for updating users.
-- Gen1 API depreciated from 12.3
+- Gen1 API deprecated from 12.3
+- Version 13.2 introduced new parameters: `userActivityLogRetentionDays`, `loginFromHour` & `loginToHour`
 
 ### Get-PASPTAEvent
 
@@ -586,3 +681,23 @@ If you are using version 9.7+, and the function being invoked requires version 9
 ### Set-PASSafe
 
 - Version 12.2 introduced new API endpoint
+
+### Get-PASComponentDetail
+
+- Version 12 adds pta as target component
+
+### Unlock-PASAccount
+
+- Unlock (not check-in) assumed to work from 11.6 (officially supported from 14.0)
+
+### Get-PASPTARiskEvent
+
+- Version 14 introduced new filter parameters
+  - `FromTime`
+  - `ToTime`
+
+### Set-PASPTARiskEvent
+
+- Version 14 introduced new parameters
+  - `closeReason`
+  - `reasonText`
