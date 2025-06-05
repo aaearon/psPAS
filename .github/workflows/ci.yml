@@ -6,20 +6,58 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        powershell-version: [7.x]
+        include:
+          # Add Windows PowerShell 5.1 test only on Windows
+          - os: windows-latest
+            powershell-version: 5.1
+
+    runs-on: ${{ matrix.os }}
+    name: Test PowerShell ${{ matrix.powershell-version }} on ${{ matrix.os }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install Pester
+    - name: Setup PowerShell 7.x
+      if: matrix.powershell-version == '7.x'
+      shell: pwsh
+      run: |
+        Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
+        Write-Host "OS: $($PSVersionTable.OS)"
+
+    - name: Setup Windows PowerShell 5.1
+      if: matrix.powershell-version == '5.1' && matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        Write-Host "Windows PowerShell version: $($PSVersionTable.PSVersion)"
+        Write-Host "OS: $env:OS"
+
+    - name: Install Pester (PowerShell 7.x)
+      if: matrix.powershell-version == '7.x'
       shell: pwsh
       run: |
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
         Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
         Import-Module Pester -Force
+        Write-Host "Pester version: $((Get-Module Pester).Version)"
+        Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
 
-    - name: Run Pester Tests
+    - name: Install Pester (Windows PowerShell 5.1)
+      if: matrix.powershell-version == '5.1' && matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
+        Import-Module Pester -Force
+        Write-Host "Pester version: $((Get-Module Pester).Version)"
+        Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
+
+    - name: Run Pester Tests (PowerShell 7.x)
+      if: matrix.powershell-version == '7.x'
       shell: pwsh
       run: |
         # Set working directory to project root
@@ -27,7 +65,7 @@ jobs:
         Write-Host "Project Root: $projectRoot"
 
         # Import the module
-        $manifestPath = Join-Path $projectRoot "psPAS\psPAS.psd1"
+        $manifestPath = Join-Path $projectRoot "psPAS" "psPAS.psd1"
         Write-Host "Manifest Path: $manifestPath"
 
         if (Test-Path $manifestPath) {
@@ -44,13 +82,49 @@ jobs:
         $configuration.Run.PassThru = $true
         $configuration.TestResult.Enabled = $true
         $configuration.TestResult.OutputFormat = 'NUnitXml'
-        $configuration.TestResult.OutputPath = Join-Path $projectRoot "TestResults.xml"
+        $configuration.TestResult.OutputPath = Join-Path $projectRoot "TestResults-PS7.xml"
         $configuration.Output.Verbosity = 'Detailed'
         $configuration.Should.ErrorAction = 'Continue'
 
         # Run tests
-        Write-Host "Running Pester tests..."
+        Write-Host "Running Pester tests on PowerShell 7.x..."
         $result = Invoke-Pester -Configuration $configuration
+
+        # Check results
+        if ($result.FailedCount -gt 0) {
+          Write-Host "❌ $($result.FailedCount) test(s) failed" -ForegroundColor Red
+          exit 1
+        } else {
+          Write-Host "✅ All $($result.PassedCount) test(s) passed" -ForegroundColor Green
+        }
+
+    - name: Run Pester Tests (Windows PowerShell 5.1)
+      if: matrix.powershell-version == '5.1' && matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        # Set working directory to project root
+        $projectRoot = $pwd
+        Write-Host "Project Root: $projectRoot"
+
+        # Import the module
+        $manifestPath = Join-Path $projectRoot "psPAS" "psPAS.psd1"
+        Write-Host "Manifest Path: $manifestPath"
+
+        if (Test-Path $manifestPath) {
+          Import-Module $manifestPath -Force
+          Write-Host "Module imported successfully"
+        } else {
+          Write-Error "Module manifest not found at $manifestPath"
+          exit 1
+        }
+
+        # Configure Pester (compatible with older versions)
+        $testsPath = Join-Path $projectRoot "Tests"
+        $outputPath = Join-Path $projectRoot "TestResults-PS51.xml"
+
+        # Run tests with legacy Pester syntax for compatibility
+        Write-Host "Running Pester tests on Windows PowerShell 5.1..."
+        $result = Invoke-Pester -Path $testsPath -OutputFile $outputPath -OutputFormat NUnitXml -PassThru
 
         # Check results
         if ($result.FailedCount -gt 0) {
@@ -64,15 +138,15 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results
-        path: TestResults.xml
+        name: test-results-${{ matrix.os }}-ps${{ matrix.powershell-version }}
+        path: TestResults-*.xml
         retention-days: 30
 
     - name: Publish Test Results
       uses: dorny/test-reporter@v1
       if: always()
       with:
-        name: Pester Tests
-        path: TestResults.xml
+        name: Pester Tests (${{ matrix.os }} - PS ${{ matrix.powershell-version }})
+        path: TestResults-*.xml
         reporter: java-junit
         fail-on-error: true
