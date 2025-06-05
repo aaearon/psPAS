@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
+        Import-Module Pester -Force
+
+    - name: Run Pester Tests
+      shell: pwsh
+      run: |
+        # Set working directory to project root
+        $projectRoot = $pwd
+        Write-Host "Project Root: $projectRoot"
+
+        # Import the module
+        $manifestPath = Join-Path $projectRoot "psPAS\psPAS.psd1"
+        Write-Host "Manifest Path: $manifestPath"
+
+        if (Test-Path $manifestPath) {
+          Import-Module $manifestPath -Force
+          Write-Host "Module imported successfully"
+        } else {
+          Write-Error "Module manifest not found at $manifestPath"
+          exit 1
+        }
+
+        # Configure Pester
+        $configuration = [PesterConfiguration]::Default
+        $configuration.Run.Path = Join-Path $projectRoot "Tests"
+        $configuration.Run.PassThru = $true
+        $configuration.TestResult.Enabled = $true
+        $configuration.TestResult.OutputFormat = 'NUnitXml'
+        $configuration.TestResult.OutputPath = Join-Path $projectRoot "TestResults.xml"
+        $configuration.Output.Verbosity = 'Detailed'
+        $configuration.Should.ErrorAction = 'Continue'
+
+        # Run tests
+        Write-Host "Running Pester tests..."
+        $result = Invoke-Pester -Configuration $configuration
+
+        # Check results
+        if ($result.FailedCount -gt 0) {
+          Write-Host "❌ $($result.FailedCount) test(s) failed" -ForegroundColor Red
+          exit 1
+        } else {
+          Write-Host "✅ All $($result.PassedCount) test(s) passed" -ForegroundColor Green
+        }
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: TestResults.xml
+        retention-days: 30
+
+    - name: Publish Test Results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Pester Tests
+        path: TestResults.xml
+        reporter: java-junit
+        fail-on-error: true
