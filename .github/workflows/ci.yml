@@ -41,10 +41,22 @@ jobs:
       shell: pwsh
       run: |
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        # Remove any existing Pester installations first
+        Get-Module Pester -ListAvailable | Remove-Module -Force -ErrorAction SilentlyContinue
+        # Install Pester 5.x
         Install-Module -Name Pester -MinimumVersion 5.0.0 -Force -Scope CurrentUser -SkipPublisherCheck
-        Import-Module Pester -Force
+        # Import the specific Pester module
+        Import-Module Pester -Force -MinimumVersion 5.0.0
         Write-Host "Pester version: $((Get-Module Pester).Version)"
         Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
+        # Verify PesterConfiguration is available
+        try {
+          $config = New-PesterConfiguration
+          Write-Host "✅ New-PesterConfiguration function is available"
+        } catch {
+          Write-Host "❌ New-PesterConfiguration function not found: $_"
+          Get-Module Pester -ListAvailable | Format-Table Name, Version, Path
+        }
 
     - name: Install Pester (Windows PowerShell 5.1)
       if: matrix.powershell-version == '5.1' && matrix.os == 'windows-latest'
@@ -77,7 +89,7 @@ jobs:
         }
 
         # Configure Pester
-        $configuration = [PesterConfiguration]::Default
+        $configuration = New-PesterConfiguration
         $configuration.Run.Path = Join-Path $projectRoot "Tests"
         $configuration.Run.PassThru = $true
         $configuration.TestResult.Enabled = $true
