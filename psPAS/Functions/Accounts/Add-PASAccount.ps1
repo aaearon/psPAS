@@ -85,7 +85,7 @@ function Add-PASAccount {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'Gen2'
 		)]
-		[hashtable]$platformAccountProperties,
+		[object]$platformAccountProperties,
 
 		[parameter(
 			Mandatory = $false,
@@ -230,6 +230,27 @@ function Add-PASAccount {
 
 		#Get all parameters that will be sent in the request
 		$boundParameters = $PSBoundParameters | Get-PASParameter
+
+		# Handle platformAccountProperties parameter type conversion
+		if ($boundParameters.ContainsKey('platformAccountProperties')) {
+			$platformProps = $boundParameters['platformAccountProperties']
+
+			# Validate that the input is either hashtable or PSCustomObject
+			if ($platformProps -is [hashtable]) {
+				# Already a hashtable, no conversion needed
+			}
+			elseif ($platformProps -is [PSCustomObject]) {
+				# Convert PSCustomObject to hashtable
+				$hashTable = @{}
+				$platformProps.PSObject.Properties | ForEach-Object {
+					$hashTable[$_.Name] = $_.Value
+				}
+				$boundParameters['platformAccountProperties'] = $hashTable
+			}
+			else {
+				throw "platformAccountProperties parameter must be either a hashtable or PSCustomObject"
+			}
+		}
 
 		switch ($PSCmdlet.ParameterSetName) {
 
