@@ -332,6 +332,88 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 		}
 		#>
+
+		Context 'platformAccountProperties Parameter Types' {
+
+			BeforeEach {
+
+				$secureString = $('P_Password' | ConvertTo-SecureString -AsPlainText -Force)
+				Mock Invoke-PASRestMethod -MockWith {
+					[pscustomobject]@{
+						'Prop1' = 'Val1'
+						'Prop2' = 'Val2'
+					}
+				}
+
+				$psPASSession.ExternalVersion = '12.6'
+
+			}
+
+			It 'accepts hashtable for platformAccountProperties parameter' {
+
+				$hashTableProps = @{
+					'Database' = 'TestDB'
+					'Port' = '1433'
+					'ConnectionTimeout' = '30'
+				}
+
+				$InputObj = [pscustomobject]@{
+					'address' = 'testserver.domain.com'
+					'SafeName' = 'TestSafe'
+					'PlatformID' = 'TestPlatform'
+					'userName' = 'TestUser'
+					'secret' = $secureString
+					'platformAccountProperties' = $hashTableProps
+				}
+
+				{ $InputObj | Add-PASAccount } | Should -Not -Throw
+
+				Assert-MockCalled Invoke-PASRestMethod -Times 1 -Exactly -Scope It
+
+			}
+
+			It 'accepts PSCustomObject for platformAccountProperties parameter' {
+
+				$customObjectProps = [PSCustomObject]@{
+					'Database' = 'TestDB'
+					'Port' = '1433'
+					'ConnectionTimeout' = '30'
+				}
+
+				$InputObj = [pscustomobject]@{
+					'address' = 'testserver.domain.com'
+					'SafeName' = 'TestSafe'
+					'PlatformID' = 'TestPlatform'
+					'userName' = 'TestUser'
+					'secret' = $secureString
+					'platformAccountProperties' = $customObjectProps
+				}
+
+				{ $InputObj | Add-PASAccount } | Should -Not -Throw
+
+				Assert-MockCalled Invoke-PASRestMethod -Times 1 -Exactly -Scope It
+
+			}
+
+			It 'throws error for invalid platformAccountProperties parameter type' {
+
+				$InvalidProps = "InvalidStringType"
+
+				$InputObj = [pscustomobject]@{
+					'address' = 'testserver.domain.com'
+					'SafeName' = 'TestSafe'
+					'PlatformID' = 'TestPlatform'
+					'userName' = 'TestUser'
+					'secret' = $secureString
+					'platformAccountProperties' = $InvalidProps
+				}
+
+				{ $InputObj | Add-PASAccount } | Should -Throw -ExpectedMessage "*platformAccountProperties parameter must be either a hashtable or PSCustomObject*"
+
+			}
+
+		}
+
 	}
 
 

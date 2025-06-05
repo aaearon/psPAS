@@ -19,7 +19,7 @@ Can target either the Gen2 API present from 10.4 onwards, or the previous Gen1 A
 ### Gen2
 ```
 Add-PASAccount [-name <String>] [-address <String>] [-userName <String>] -platformID <String>
- -SafeName <String> [-secretType <String>] [-secret <SecureString>] [-platformAccountProperties <Hashtable>]
+ -SafeName <String> [-secretType <String>] [-secret <SecureString>] [-platformAccountProperties <Object>]
  [-automaticManagementEnabled <Boolean>] [-manualManagementReason <String>] [-remoteMachines <String>]
  [-accessRestrictedToRemoteMachines <Boolean>] [<CommonParameters>]
 ```
@@ -68,6 +68,21 @@ Using the Gen2 API, adds an account configured for the Unix via SSH Certificate 
 
 Requires minimum version of 10.4
 Unix via SSH Certificate platform is supported in versions 11.2 and above.
+
+### EXAMPLE 4
+```
+# Get an existing account (platformAccountProperties returned as PSCustomObject)
+$SourceAccount = Get-PASAccount -id 2_18
+
+# Copy the account to a new safe, directly using the PSCustomObject platformAccountProperties
+Add-PASAccount -address "newserver" -userName "newuser" -platformID $SourceAccount.platformID -SafeName "NewSafe" -platformAccountProperties $SourceAccount.platformAccountProperties
+```
+
+Using the Gen2 API, demonstrates copying an account by directly using platformAccountProperties from Get-PASAccount.
+
+The function automatically converts the PSCustomObject returned by Get-PASAccount to the hashtable format required by the API.
+
+Requires minimum version of 10.4
 
 ## PARAMETERS
 
@@ -199,10 +214,12 @@ key-value pairs to associate with the account, as defined by the account platfor
 
 These properties are validated against the mandatory and optional properties of the specified platform's definition.
 
+Accepts either a hashtable or PSCustomObject. If a PSCustomObject is provided, it will be automatically converted to a hashtable.
+
 Requires minimum version of 10.4
 
 ```yaml
-Type: Hashtable
+Type: Object
 Parameter Sets: Gen2
 Aliases:
 
