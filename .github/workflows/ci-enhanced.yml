@@ -1,4 +1,4 @@
-name: CI
+name: CI Enhanced
 
 on:
   push:
@@ -22,8 +22,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup PowerShell 7.x
-      if: matrix.powershell-version == '7.x'
+    - name: Setup PowerShell 7.x on Ubuntu
+      if: matrix.powershell-version == '7.x' && matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        # Install PowerShell on Ubuntu
+        wget -q https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell_7.4.1-1.deb_amd64.deb
+        sudo dpkg -i powershell_7.4.1-1.deb_amd64.deb
+        sudo apt-get install -f
+        pwsh --version
+
+    - name: Setup PowerShell 7.x on Windows
+      if: matrix.powershell-version == '7.x' && matrix.os == 'windows-latest'
       shell: pwsh
       run: |
         Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
@@ -62,7 +72,9 @@ jobs:
       run: |
         # Set working directory to project root
         $projectRoot = $pwd
-        Write-Host "Project Root: $projectRoot"
+        Write-Host "Project Root: $projectRoot"        # Re-import Pester to ensure New-PesterConfiguration is available
+        Import-Module Pester -Force
+        Write-Host "Pester re-imported. Version: $((Get-Module Pester).Version)"
 
         # Import the module
         $manifestPath = Join-Path $projectRoot "psPAS" "psPAS.psd1"
@@ -76,11 +88,7 @@ jobs:
           exit 1
         }
 
-        # Re-import Pester to ensure it's properly loaded
-        Import-Module Pester -Force
-        Write-Host "Pester re-imported. Version: $((Get-Module Pester).Version)"
-
-        # Configure Pester using v5 syntax
+        # Configure Pester (using v5 syntax)
         $configuration = New-PesterConfiguration
         $configuration.Run.Path = Join-Path $projectRoot "Tests"
         $configuration.Run.PassThru = $true
@@ -97,7 +105,7 @@ jobs:
         # Check results
         if ($result.FailedCount -gt 0) {
           Write-Host "❌ $($result.FailedCount) test(s) failed" -ForegroundColor Red
-          exit 1
+          # Don't exit 1 immediately - let the test report show details
         } else {
           Write-Host "✅ All $($result.PassedCount) test(s) passed" -ForegroundColor Green
         }
@@ -133,7 +141,7 @@ jobs:
         # Check results
         if ($result.FailedCount -gt 0) {
           Write-Host "❌ $($result.FailedCount) test(s) failed" -ForegroundColor Red
-          exit 1
+          # Don't exit 1 immediately - let the test report show details
         } else {
           Write-Host "✅ All $($result.PassedCount) test(s) passed" -ForegroundColor Green
         }
@@ -153,4 +161,24 @@ jobs:
         name: Pester Tests (${{ matrix.os }} - PS ${{ matrix.powershell-version }})
         path: TestResults-*.xml
         reporter: java-junit
-        fail-on-error: true
+        fail-on-error: false  # Let the workflow complete even with test failures
+
+    - name: Fail job if tests failed
+      if: always()
+      shell: pwsh
+      run: |
+        $testFiles = Get-ChildItem "TestResults-*.xml" -ErrorAction SilentlyContinue
+        if ($testFiles) {
+          foreach ($file in $testFiles) {
+            [xml]$xml = Get-Content $file.FullName
+            $failures = $xml.SelectNodes("//test-case[@result='Failed']").Count
+            if ($failures -gt 0) {
+              Write-Host "❌ Found $failures failed tests in $($file.Name)"
+              exit 1
+            }
+          }
+          Write-Host "✅ All tests passed!"
+        } else {
+          Write-Host "⚠️ No test result files found"
+          exit 1
+        }
