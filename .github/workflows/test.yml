@@ -23,13 +23,13 @@ jobs:
     - uses: actions/checkout@v4
     
     - name: Install Pester
-      shell: ${{ matrix.shell }}
+      shell: "${{ matrix.shell }}"
       run: |
         Install-Module -Name Pester -Force -SkipPublisherCheck
         Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
     
     - name: Import Module and Run Pester Tests
-      shell: ${{ matrix.shell }}
+      shell: "${{ matrix.shell }}"
       run: |
         Import-Module .\psPAS\psPAS.psd1 -Force
         Invoke-Pester -Path .\Tests -Output Detailed -CI
@@ -38,5 +38,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results-${{ matrix.os }}
+        name: "test-results-${{ matrix.os }}"
         path: testResults.xml
