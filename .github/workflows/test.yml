@@ -7,19 +7,29 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            shell: powershell
+            name: "Windows PowerShell 5.1"
+          - os: ubuntu-latest
+            shell: pwsh
+            name: "Linux PowerShell 7.x"
+    
+    runs-on: ${{ matrix.os }}
     
     steps:
     - uses: actions/checkout@v4
     
     - name: Install Pester
-      shell: pwsh
+      shell: ${{ matrix.shell }}
       run: |
         Install-Module -Name Pester -Force -SkipPublisherCheck
         Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
     
     - name: Import Module and Run Pester Tests
-      shell: pwsh
+      shell: ${{ matrix.shell }}
       run: |
         Import-Module .\psPAS\psPAS.psd1 -Force
         Invoke-Pester -Path .\Tests -Output Detailed -CI
@@ -28,5 +38,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results
+        name: test-results-${{ matrix.os }}
         path: testResults.xml
