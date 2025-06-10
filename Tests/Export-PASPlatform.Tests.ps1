@@ -54,7 +54,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 			Mock Out-PASFile -MockWith { }
 
-			$response = Export-PASPlatform -PlatformID SomePlatform -path "$env:Temp\testExport.zip"
+			$response = Export-PASPlatform -PlatformID SomePlatform -path ([System.IO.Path]::Combine($env:Temp, 'testExport.zip'))
 		}
 
 		Context 'Mandatory Parameters' {

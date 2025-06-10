@@ -89,7 +89,7 @@ Describe $($PSCommandPath -Replace '.Tests.ps1') {
 
 				$InputObj = [pscustomobject]@{
 					'RecordingID' = 'SomeID'
-					'path'        = "$env:Temp\test.avi"
+					'path'        = [System.IO.Path]::Combine($env:Temp, 'test.avi')
 
 				}
 
