@@ -6,30 +6,19 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            name: "Windows PowerShell 5.1"
-            shell: powershell
-          - os: ubuntu-latest
-            name: "Linux PowerShell 7.x"
-            shell: pwsh
-    
-    runs-on: ${{ matrix.os }}
-    
+  test-windows:
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
     
     - name: Install Pester
-      shell: ${{ matrix.shell }}
+      shell: powershell
       run: |
         Install-Module -Name Pester -Force -SkipPublisherCheck
         Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
     
     - name: Import Module and Run Pester Tests
-      shell: ${{ matrix.shell }}
+      shell: powershell
       run: |
         Import-Module .\psPAS\psPAS.psd1 -Force
         Invoke-Pester -Path .\Tests -Output Detailed -CI
@@ -38,5 +27,29 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: "test-results-${{ matrix.os }}"
+        name: "test-results-windows"
+        path: testResults.xml
+
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        Install-Module -Name Pester -Force -SkipPublisherCheck
+        Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+    
+    - name: Import Module and Run Pester Tests
+      shell: pwsh
+      run: |
+        Import-Module .\psPAS\psPAS.psd1 -Force
+        Invoke-Pester -Path .\Tests -Output Detailed -CI
+    
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: "test-results-linux"
         path: testResults.xml
