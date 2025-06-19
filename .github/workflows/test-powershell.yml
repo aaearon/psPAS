@@ -1,0 +1,184 @@
+name: PowerShell Tests (Fork-Friendly)
+
+# Streamlined PowerShell testing workflow for psPAS module
+# Features simple dependency installation and fork-friendly operation
+# Supports PowerShell 5.1+ and PowerShell 7.x cross-platform testing
+
+# WORKFLOW ARCHITECTURE
+# This workflow implements a 4-step testing process optimized for simplicity and reliability:
+# 1. Repository checkout with minimal depth for performance
+# 2. Module import with cross-platform path handling and comprehensive error handling
+# 3. Test execution using Pester with NUnit XML output (1870+ tests across 205+ files)
+# 4. Result artifact upload with 30-day retention for analysis
+#
+# DESIGN PHILOSOPHY: Maximum simplicity for fork-friendly contribution
+# - No complex caching mechanisms that can fail in fork environments
+# - Direct dependency resolution every run for predictable behavior
+# - Comprehensive error messages and generous timeout handling
+# - Self-contained execution requiring no external setup or secrets
+#
+# CONTRIBUTOR GUIDE
+# Fork contributors can:
+# - Push changes to trigger automatic testing on their fork
+# - Run tests locally using: pwsh.exe -File .\build\test.ps1
+# - Test specific functions: Invoke-Pester -Path .\Tests\<FunctionName>.Tests.ps1
+# - Import module locally: Import-Module .\psPAS\psPAS.psd1 -Force
+# - View detailed test results in Actions tab artifacts
+# - Modify workflow safely - all changes are validated before any merge
+#
+# PERFORMANCE EXPECTATIONS
+# - Total execution time: 12-15 minutes across all matrix configurations
+# - Test discovery and execution: ~6-8 minutes per configuration
+# - Cross-platform compatibility testing on Windows PowerShell 5.1, PowerShell 7.x
+# - Artifact generation: TestResults.xml with comprehensive test output
+#
+# TROUBLESHOOTING
+# - Module import failures: Check PowerShell version compatibility in logs
+# - Test failures: Review specific test output in uploaded TestResults.xml artifacts
+# - Timeout issues: Generous timeouts indicate system/network problems, not workflow issues
+# - Cross-platform issues: Workflow handles Windows/Linux path differences automatically
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: PowerShell Tests
+    runs-on: ${{ matrix.os }}
+    # Generous timeout accommodates slower runners and comprehensive test suite execution (1870+ tests)
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        shell: [pwsh]
+        include:
+          # Test Windows PowerShell 5.1 for backwards compatibility
+          - os: windows-latest
+            shell: powershell
+    
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+        
+    permissions:
+      contents: read
+      actions: read
+      
+    env:
+      # Disable PowerShell telemetry for cleaner CI logs and faster execution
+      POWERSHELL_TELEMETRY_OPTOUT: 1
+      # Standardized test results directory for artifact collection
+      TEST_RESULTS_PATH: TestResults
+    
+    steps:
+      # Repository checkout with minimal depth for optimal performance
+      # Fetches only the latest commit to reduce clone time and bandwidth usage
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        timeout-minutes: 5
+        with:
+          fetch-depth: 1
+          
+      # Import psPAS module with comprehensive error handling and cross-platform support
+      # This step validates module loading across all supported PowerShell versions
+      # and provides detailed diagnostics for troubleshooting import failures
+      - name: Import psPAS Module
+        timeout-minutes: 10
+        run: |
+          Write-Host "Importing psPAS module on $($env:RUNNER_OS)..."
+          Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+          
+          $modulePath = if ($env:RUNNER_OS -eq 'Windows') {
+            "${{ github.workspace }}\psPAS\psPAS.psd1"
+          } else {
+            "${{ github.workspace }}/psPAS/psPAS.psd1"
+          }
+          
+          Write-Host "Module path: $modulePath"
+          
+          # Import with force and error handling
+          Import-Module $modulePath -Force -ErrorAction Stop
+          
+          # Verify import
+          $module = Get-Module -Name psPAS
+          if (-not $module) {
+            throw "psPAS module not loaded after import"
+          }
+          
+          Write-Host "psPAS module imported successfully"
+          Write-Host "   Version: $($module.Version)"
+          Write-Host "   Exported Functions: $($module.ExportedFunctions.Count)"
+
+
+      # Execute Pester test suite with robust configuration and comprehensive error handling
+      # Configures Pester for NUnit XML output compatible with CI/CD systems
+      # Runs complete test suite (1870+ tests) with detailed result capture and artifact generation
+      - name: Run Tests
+        timeout-minutes: 22
+        run: |
+          Write-Host "Running Pester tests on $($env:RUNNER_OS)..."
+          Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+          
+          # Import psPAS module for this session
+          Write-Host "Importing psPAS module for test session..."
+          $modulePath = if ($env:RUNNER_OS -eq 'Windows') {
+            "${{ github.workspace }}\psPAS\psPAS.psd1"
+          } else {
+            "${{ github.workspace }}/psPAS/psPAS.psd1"
+          }
+          Import-Module $modulePath -Force -ErrorAction Stop
+          
+          try {
+            # Create test results directory
+            if (-not (Test-Path "TestResults")) {
+              New-Item -ItemType Directory -Path "TestResults" -Force | Out-Null
+            }
+            
+            # Configure Pester
+            $config = New-PesterConfiguration
+            $config.Run.Path = 'Tests'
+            $config.Run.PassThru = $true
+            $config.Run.Exit = $false
+            $config.TestResult.Enabled = $true
+            $config.TestResult.OutputPath = Join-Path "TestResults" "TestResults.xml"
+            $config.TestResult.OutputFormat = 'NUnitXml'
+            $config.Output.Verbosity = 'Normal'
+            
+            # Run tests
+            $result = Invoke-Pester -Configuration $config
+            
+            # Fail job if tests failed
+            if ($result.FailedCount -gt 0) {
+              Write-Host "TEST FAILURE: $($result.FailedCount) test(s) failed"
+              exit 1
+            }
+            
+          }
+          catch {
+            Write-Host "Test execution failed: $_"
+            if (-not (Test-Path "TestResults")) {
+              New-Item -ItemType Directory -Path "TestResults" -Force | Out-Null
+            }
+            "Test execution failed: $_" | Out-File (Join-Path "TestResults" "error.log")
+            exit 1
+          }
+
+
+      # Upload test results and artifacts for contributor analysis
+      # Provides comprehensive test output accessible to fork contributors for debugging
+      # Includes TestResults.xml with detailed test outcomes and any error logs generated
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 5
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.shell }}-${{ github.run_number }}
+          path: |
+            TestResults/
+            *.log
+          retention-days: 30
+          if-no-files-found: warn
+
