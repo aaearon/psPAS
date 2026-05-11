@@ -1,5 +1,5 @@
 # .ExternalHelp psPAS-help.xml
-Function New-PASAccountObject {
+function New-PASAccountObject {
 	[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'remoteMachinesAccess', Justification = 'False Positive')]
 	[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'secretManagement', Justification = 'False Positive')]
 	[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'AccountObject')]
@@ -30,6 +30,11 @@ Function New-PASAccountObject {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'AccountObject'
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
+		)]
 		[string]$name,
 
 		[parameter(
@@ -49,6 +54,11 @@ Function New-PASAccountObject {
 			Mandatory = $true,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'AccountObject'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
 		)]
 		[Alias('PolicyID')]
 		[string]$platformID,
@@ -88,6 +98,11 @@ Function New-PASAccountObject {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'AccountObject'
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
+		)]
 		[hashtable]$platformAccountProperties,
 
 		[parameter(
@@ -95,12 +110,22 @@ Function New-PASAccountObject {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'AccountObject'
 		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
+		)]
 		[boolean]$automaticManagementEnabled,
 
 		[parameter(
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'AccountObject'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
 		)]
 		[string]$manualManagementReason,
 
@@ -130,11 +155,18 @@ Function New-PASAccountObject {
 			ValueFromPipelinebyPropertyName = $true,
 			ParameterSetName = 'PersonalAdminAccount'
 		)]
-		[switch]$PersonalAdminAccount
+		[switch]$PersonalAdminAccount,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'DependentAccountObject'
+		)]
+		[switch]$DependentAccount
 
 	)
 
-	Begin {
+	begin {
 
 		#V10 parameters are nested under JSON object properties
 		$remoteMachine = [Collections.Generic.List[String]]@('remoteMachines', 'accessRestrictedToRemoteMachines')
@@ -142,13 +174,13 @@ Function New-PASAccountObject {
 
 	}
 
-	Process {
+	process {
 
 		#Get all parameters that will be sent in the request
 		$boundParameters = $PSBoundParameters | Get-PASParameter
 
 		#deal with "secret" SecureString
-		If ($PSBoundParameters.ContainsKey('secret')) {
+		if ($PSBoundParameters.ContainsKey('secret')) {
 
 			#Include decoded password in request
 			$boundParameters['secret'] = $(ConvertTo-InsecureString -SecureString $secret)
@@ -194,16 +226,37 @@ Function New-PASAccountObject {
 
 			}
 
+			'DependentAccountObject' {
+
+				$boundParameters.keys | Where-Object { $SecretMgmt -contains $PSItem } | ForEach-Object {
+
+					$secretManagement = @{ }
+
+				} {
+
+					#add key=value to hashtable
+					$secretManagement[$PSItem] = $boundParameters[$PSItem]
+
+				} {
+
+					$boundParameters['secretManagement'] = $secretManagement
+
+				}
+
+				break
+
+			}
+
 		}
 
 		if ($PSCmdlet.ShouldProcess($userName, 'Create Account Object Definition')) {
 
-			$boundParameters | Get-PASParameter -ParametersToRemove @($remoteMachine + $SecretMgmt + 'PersonalAdminAccount')
+			$boundParameters | Get-PASParameter -ParametersToRemove @($remoteMachine + $SecretMgmt + 'PersonalAdminAccount' + 'DependentAccount')
 
 		}
 
 	}
 
-	End {}
+	end {}
 
 }

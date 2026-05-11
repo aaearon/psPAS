@@ -400,17 +400,26 @@ function New-PASUser {
 			ParameterSetName = 'Gen1'
 		)]
 		[Alias('UseClassicAPI')]
-		[switch]$UseGen1API
+		[switch]$UseGen1API,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateSet('SAML', 'PKI', 'FIDO', 'WINDOWS')]
+		[AllowEmptyCollection()]
+		[string[]]$allowedAuthenticationMethods
 	)
 
-	BEGIN {	}#begin
+	begin {	}#begin
 
-	PROCESS {
+	process {
 
 		#Get request parameters
 		$boundParameters = $PSBoundParameters | Get-PASParameter
 
-		If ($PSBoundParameters.ContainsKey('InitialPassword')) {
+		if ($PSBoundParameters.ContainsKey('InitialPassword')) {
 
 			#Include decoded password in request
 			$boundParameters['InitialPassword'] = $(ConvertTo-InsecureString -SecureString $InitialPassword)
@@ -423,9 +432,15 @@ function New-PASUser {
 
 				Assert-VersionRequirement -RequiredVersion 10.9
 
-				If ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
+				if ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
 
 					Assert-VersionRequirement -RequiredVersion 13.2
+
+				}
+
+				if ($PSBoundParameters.Keys -match 'allowedAuthenticationMethods') {
+
+					Assert-VersionRequirement -RequiredVersion 14.4
 
 				}
 
@@ -447,7 +462,7 @@ function New-PASUser {
 				#Create URL for request
 				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Users"
 
-				If ($PSBoundParameters.ContainsKey('ExpiryDate')) {
+				if ($PSBoundParameters.ContainsKey('ExpiryDate')) {
 
 					#Convert ExpiryDate to string in Required format
 					$Date = (Get-Date $ExpiryDate -Format MM/dd/yyyy).ToString()
@@ -473,7 +488,7 @@ function New-PASUser {
 			#send request to web service
 			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
-			If ($null -ne $result) {
+			if ($null -ne $result) {
 
 				$result | Add-ObjectDetail -typename $typeName
 
@@ -483,6 +498,6 @@ function New-PASUser {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

@@ -413,12 +413,21 @@ function Set-PASUser {
 			ParameterSetName = 'Gen1'
 		)]
 		[Alias('UseClassicAPI')]
-		[switch]$UseGen1API
+		[switch]$UseGen1API,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[ValidateSet('SAML', 'PKI', 'FIDO', 'WINDOWS')]
+		[AllowEmptyCollection()]
+		[string[]]$allowedAuthenticationMethods
 	)
 
-	BEGIN {
+	begin {
 
-		If ($PSCmdlet.ParameterSetName -eq 'Gen2') {
+		if ($PSCmdlet.ParameterSetName -eq 'Gen2') {
 
 			Assert-VersionRequirement -RequiredVersion 11.1
 
@@ -426,7 +435,7 @@ function Set-PASUser {
 
 	}#begin
 
-	PROCESS {
+	process {
 
 		#Get request parameters
 		$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove id
@@ -435,9 +444,15 @@ function Set-PASUser {
 
 			'Gen2' {
 
-				If ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
+				if ($PSBoundParameters.Keys -match 'userActivityLogRetentionDays|loginFromHour|loginToHour') {
 
 					Assert-VersionRequirement -RequiredVersion 13.2
+
+				}
+
+				if ($PSBoundParameters.Keys -match 'allowedAuthenticationMethods') {
+
+					Assert-VersionRequirement -RequiredVersion 14.4
 
 				}
 
@@ -462,7 +477,7 @@ function Set-PASUser {
 
 				Assert-VersionRequirement -MaximumVersion 12.3
 
-				If ($PSBoundParameters.ContainsKey('ExpiryDate')) {
+				if ($PSBoundParameters.ContainsKey('ExpiryDate')) {
 
 					#Convert ExpiryDate to string in Required format
 					$Date = (Get-Date $ExpiryDate -Format MM/dd/yyyy).ToString()
@@ -487,7 +502,7 @@ function Set-PASUser {
 		}
 
 		#deal with newPassword SecureString
-		If ($PSBoundParameters.ContainsKey('NewPassword')) {
+		if ($PSBoundParameters.ContainsKey('NewPassword')) {
 
 			#Include decoded password in request
 			$boundParameters['NewPassword'] = $(ConvertTo-InsecureString -SecureString $NewPassword)
@@ -501,7 +516,7 @@ function Set-PASUser {
 			#send request to web service
 			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
-			If ($null -ne $result) {
+			if ($null -ne $result) {
 
 				$result | Add-ObjectDetail -typename $TypeName
 
@@ -511,6 +526,6 @@ function Set-PASUser {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

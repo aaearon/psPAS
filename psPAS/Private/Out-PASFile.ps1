@@ -33,22 +33,30 @@ function Out-PASFile {
 		[string]$Path
 	)
 
-	Begin { }
+	begin { }
 
-	Process {
+	process {
 
-		If (-not ($Path)) {
+		if (-not ($Path)) {
 
 			#Default to TEMP if path not provided
 			$Path = [Environment]::GetEnvironmentVariable('Temp')
 
 		}
 
-		#Get filename from Content-Disposition Header element.
-		$FileName = ($InputObject.Headers['Content-Disposition'] -split 'filename=')[1] -replace '"'
+		if (Test-Path -Path $Path -PathType Container) {
 
-		#Define output path
-		$OutputPath = Join-Path $Path $FileName
+			if ($InputObject.Headers.ContainsKey('Content-Disposition')) {
+				#Get filename from Content-Disposition Header element.
+				$FileName = ($InputObject.Headers['Content-Disposition'] -split 'filename=')[1] -replace '"'
+			}
+
+			#Define output path
+			$OutputPath = Join-Path $Path $FileName
+
+		} else {
+			$OutputPath = $Path #assume full path provided
+		}
 
 		if ($PSCmdlet.ShouldProcess($OutputPath, 'Save File')) {
 
@@ -61,7 +69,7 @@ function Out-PASFile {
 					Encoding = 'Byte'
 				}
 
-				If (Test-IsCoreCLR) {
+				if (Test-IsCoreCLR) {
 
 					#amend parameters for splatting if we are in Core
 					$output.Add('AsByteStream', $true)
@@ -96,6 +104,6 @@ function Out-PASFile {
 
 	}
 
-	End { }
+	end { }
 
 }

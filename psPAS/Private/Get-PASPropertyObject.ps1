@@ -1,4 +1,4 @@
-Function Get-PASPropertyObject {
+function Get-PASPropertyObject {
     <#
     .SYNOPSIS
     Designed to flatten objects returned from psPAS commands
@@ -8,7 +8,7 @@ Function Get-PASPropertyObject {
 
     This function returns all property values as root level properties of the output object.
 
-    Facilitates sending existing property values as parametes for Set-PAS* commands.
+    Facilitates sending existing property values as parameters for Set-PAS* commands.
 
     .PARAMETER InputObject
     The input object to flatten
@@ -34,7 +34,7 @@ Function Get-PASPropertyObject {
     Pete Maan 2024
     #>
     [CmdLetBinding()]
-    Param (
+    param (
 
         [Parameter(
             Mandatory = $True,
@@ -43,15 +43,15 @@ Function Get-PASPropertyObject {
         [psobject]$InputObject
     )
 
-    Begin {
+    begin {
         $Properties = @{}
     }
-    Process {
+    process {
 
         #Iterate each property
         $InputObject.psobject.Properties | ForEach-Object {
 
-            If ($null -ne $PSItem.value) {
+            if ($null -ne $PSItem.value) {
 
                 #save the property name
                 $property = $PSItem.name
@@ -73,7 +73,7 @@ Function Get-PASPropertyObject {
         }
 
     }
-    End {
+    end {
 
         #output hashtable elements
         $Properties.GetEnumerator()

@@ -77,15 +77,23 @@ function New-PASDirectoryMapping {
 			Mandatory = $false,
 			ValueFromPipelinebyPropertyName = $true
 		)]
-		[boolean]$EnableENEWhenDisconnected
+		[boolean]$EnableENEWhenDisconnected,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true
+		)]
+		[AllowEmptyCollection()]
+		[ValidateSet('SAML', 'PKI', 'FIDO', 'WINDOWS')]
+		[string[]]$allowedAuthenticationMethods
 
 	)
 
-	BEGIN {
+	begin {
 		Assert-VersionRequirement -SelfHosted
 	}#begin
 
-	PROCESS {
+	process {
 
 		#Get request parameters
 		$boundParameters = $PSBoundParameters | Get-PASParameter -ParametersToRemove DirectoryName, MappingAuthorizations
@@ -97,7 +105,7 @@ function New-PASDirectoryMapping {
 
 				#Transform MappingAuthorizations
 				$boundParameters.Add('MappingAuthorizations', [array][int]$MappingAuthorizations)
-				Continue
+				continue
 
 			}
 
@@ -105,7 +113,7 @@ function New-PASDirectoryMapping {
 
 				#v10.10
 				Assert-VersionRequirement -RequiredVersion 10.10
-				Continue
+				continue
 
 			}
 
@@ -113,15 +121,23 @@ function New-PASDirectoryMapping {
 
 				#v10.7
 				Assert-VersionRequirement -RequiredVersion 10.7
-				Continue
+				continue
 
 			}
 
 			{ $_ -match 'UsedQuota|AuthorizedInterfaces|EnableENEWhenDisconnected' } {
 
-				#v10.7
+				#v14.0
 				Assert-VersionRequirement -RequiredVersion 14.0
-				Continue
+				continue
+
+			}
+
+			{ $_ -match 'allowedAuthenticationMethods' } {
+
+				#v14.4
+				Assert-VersionRequirement -RequiredVersion 14.4
+				continue
 
 			}
 
@@ -144,7 +160,7 @@ function New-PASDirectoryMapping {
 			#send request to web service
 			$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
-			If ($null -ne $result) {
+			if ($null -ne $result) {
 
 				#Return Results
 				$result | Add-ObjectDetail -typename psPAS.CyberArk.Vault.Directory.Mapping
@@ -155,6 +171,6 @@ function New-PASDirectoryMapping {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

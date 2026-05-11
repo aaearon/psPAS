@@ -1,14 +1,14 @@
 # .ExternalHelp psPAS-help.xml
-Function Get-PASPTAIncludedTarget {
+function Get-PASPTAExcludedTarget {
     [CmdletBinding()]
     param( )
 
-    BEGIN {
+    begin {
         Assert-VersionRequirement -SelfHosted
         Assert-VersionRequirement -RequiredVersion 14.0
     }#begin
 
-    PROCESS {
+    process {
 
         #Create request URL
         $URI = "$($psPASSession.BaseURI)/API/pta/API/administration"
@@ -16,17 +16,17 @@ Function Get-PASPTAIncludedTarget {
         #Send request to web service
         $result = Invoke-PASRestMethod -Uri $URI -Method GET
 
-        If ($null -ne $result) {
+        if ($null -ne $result) {
 
             #Return Results
-            $result | Where-Object { ($PSItem.propertykey -eq 'CidrInclusionList') -and ($PSItem.categorykey -eq 'MonitoredTargets') } |
-                Select-Object -ExpandProperty 'actualValue' |
+            $result | Where-Object { ($PSItem.propertykey -eq 'CidrExclusionList') -and ($PSItem.categorykey -eq 'MonitoredTargets') } |
+                Select-Object -ExpandProperty 'ActualValue' |
                 Add-ObjectDetail -typename psPAS.CyberArk.Vault.PTA.MonitoredTarget
 
         }
 
     }#process
 
-    END { }#end
+    end { }#end
 
 }

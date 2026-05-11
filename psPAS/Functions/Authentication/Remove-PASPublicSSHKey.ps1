@@ -17,14 +17,14 @@ function Remove-PASPublicSSHKey {
 
 	)
 
-	BEGIN { }#begin
+	begin { }#begin
 
-	PROCESS {
+	process {
 
 		#Create URL string for request
 		$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Users/$($UserName |
 
-            Get-EscapedString)/AuthenticationMethods/SSHKeyAuthentication/AuthorizedKeys/$KeyID/"
+            Get-EscapedString)/AuthenticationMethods/SSHKeyAuthentication/AuthorizedKeys/$KeyID"
 
 		if ($PSCmdlet.ShouldProcess($KeyID, 'Delete Public SSH Key')) {
 
@@ -35,6 +35,6 @@ function Remove-PASPublicSSHKey {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

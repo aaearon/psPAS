@@ -1,5 +1,5 @@
 # .ExternalHelp psPAS-help.xml
-Function Add-PASPTARule {
+function Add-PASPTARule {
 	[CmdletBinding()]
 	param(
 		[parameter(
@@ -69,7 +69,7 @@ Function Add-PASPTARule {
 
 	)
 
-	BEGIN {
+	begin {
 		Assert-VersionRequirement -SelfHosted
 		Assert-VersionRequirement -RequiredVersion 10.4
 		$userScopeParams = [Collections.Generic.List[String]]@('vaultUsersMode', 'vaultUsersList')
@@ -78,7 +78,7 @@ Function Add-PASPTARule {
 
 	}#begin
 
-	PROCESS {
+	process {
 
 		#Get all parameters that will be sent in the request
 		$boundParameters = $PSBoundParameters | Get-PASParameter
@@ -107,8 +107,8 @@ Function Add-PASPTARule {
 				if (-not($boundParameters['scope'].ContainsKey($scopeItem))) {
 					$boundParameters['scope'].Add($scopeItem, @{})
 				}
-				#translate paramer names into request property name
-				#* Return only last 4 characters of parametername in lowercase
+				#translate parameter names into request property name
+				#* Return only last 4 characters of parameter name in lowercase
 				#*vaultUsersMode & machinesMode translate to "mode"
 				#*vaultUsersList & machinesList translate to "list"
 				$property = ($PSItem).Substring(($PSItem).length - 4, 4).ToLower()
@@ -127,7 +127,7 @@ Function Add-PASPTARule {
 		#send request to PAS web service
 		$result = Invoke-PASRestMethod -Uri $URI -Method POST -Body $Body
 
-		If ($null -ne $result) {
+		if ($null -ne $result) {
 
 			#Return Results
 			$result | Add-ObjectDetail -typename 'psPAS.CyberArk.Vault.PTA.Rule'
@@ -136,6 +136,6 @@ Function Add-PASPTARule {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

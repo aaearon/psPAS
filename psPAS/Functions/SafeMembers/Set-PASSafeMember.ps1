@@ -4,129 +4,318 @@ function Set-PASSafeMember {
 	param(
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ConnectOnly'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ReadOnly'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Approver'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'AccountsManager'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Full'
 		)]
 		[ValidateNotNullOrEmpty()]
 		[string]$SafeName,
 
-		[Alias('UserName')]
 		[parameter(
 			Mandatory = $true,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
 		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ConnectOnly'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ReadOnly'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Approver'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'AccountsManager'
+		)]
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Full'
+		)]
+		[Alias('UserName')]
 		[ValidateNotNullOrEmpty()]
 		[ValidateScript( { $_ -notmatch '.*(\?|\&).*' })]
 		[string]$MemberName,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
 		)]
-		[datetime]$MembershipExpirationDate,
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ConnectOnly'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'ReadOnly'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Approver'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'AccountsManager'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Full'
+		)]
+		[Nullable[datetime]]$MembershipExpirationDate,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('RestrictedRetrieve')]
 		[boolean]$UseAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Retrieve')]
 		[boolean]$RetrieveAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('ListContent')]
 		[boolean]$ListAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Add')]
 		[boolean]$AddAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Update')]
 		[boolean]$UpdateAccountContent,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('UpdateMetadata')]
 		[boolean]$UpdateAccountProperties,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$InitiateCPMAccountManagementOperations,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$SpecifyNextAccountContent,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Rename')]
 		[boolean]$RenameAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Delete')]
 		[boolean]$DeleteAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('Unlock')]
 		[boolean]$UnlockAccounts,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$ManageSafe,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$ManageSafeMembers,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$BackupSafe,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('ViewAudit')]
 		[boolean]$ViewAuditLog,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('ViewMembers')]
 		[boolean]$ViewSafeMembers,
@@ -138,7 +327,6 @@ function Set-PASSafeMember {
 		)]
 		[ValidateRange(0, 2)]
 		[int]$RequestsAuthorizationLevel,
-
 
 		[parameter(
 			Mandatory = $false,
@@ -156,26 +344,50 @@ function Set-PASSafeMember {
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$AccessWithoutConfirmation,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('AddRenameFolder')]
 		[boolean]$CreateFolders,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[boolean]$DeleteFolders,
 
 		[parameter(
 			Mandatory = $false,
-			ValueFromPipelinebyPropertyName = $true
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen1'
+		)]
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipelinebyPropertyName = $true,
+			ParameterSetName = 'Gen2'
 		)]
 		[Alias('MoveFilesAndFolders')]
 		[boolean]$MoveAccountsAndFolders,
@@ -185,11 +397,45 @@ function Set-PASSafeMember {
 			ValueFromPipelinebyPropertyName = $false,
 			ParameterSetName = 'Gen1'
 		)]
-		[switch]$UseGen1API
+		[switch]$UseGen1API,
 
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'ConnectOnly'
+		)]
+		[switch]$ConnectOnly,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'ReadOnly'
+		)]
+		[switch]$ReadOnly,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'Approver'
+		)]
+		[switch]$Approver,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'AccountsManager'
+		)]
+		[switch]$AccountsManager,
+
+		[parameter(
+			Mandatory = $true,
+			ValueFromPipelinebyPropertyName = $false,
+			ParameterSetName = 'Full'
+		)]
+		[switch]$Full
 	)
 
-	BEGIN {
+	begin {
 
 		#array for parameter names which appear in the top-tier of the JSON object
 		$keysToKeep = [Collections.Generic.List[String]]@(
@@ -198,14 +444,14 @@ function Set-PASSafeMember {
 
 	}#begin
 
-	PROCESS {
+	process {
 
 		#Get passed parameters to include in request body
 		$boundParameters = $PSBoundParameters | Get-PASParameter
 
 		switch ($PSCmdlet.ParameterSetName) {
 
-			'Gen1' {
+			( { $PSItem -match '^Gen1' } ) {
 
 				#check required version
 				Assert-VersionRequirement -MaximumVersion 12.3
@@ -214,7 +460,7 @@ function Set-PASSafeMember {
 				$URI = "$($psPASSession.BaseURI)/WebServices/PIMServices.svc/Safes/$($SafeName |
 					Get-EscapedString)/Members/$($MemberName | Get-EscapedString)/"
 
-				If ($PSBoundParameters.ContainsKey('MembershipExpirationDate')) {
+				if ($PSBoundParameters.ContainsKey('MembershipExpirationDate')) {
 
 					#Convert ExpiryDate to string in Required format
 					$Date = (Get-Date $MembershipExpirationDate -Format MM/dd/yyyy).ToString()
@@ -239,11 +485,12 @@ function Set-PASSafeMember {
 
 			}
 
-			'Gen2' {
+			( { $PSItem -match '^Gen2' -or '^ReadOnly' -or '^ConnectOnly' -or '^Approver' -or '^AccountsManager' -or '^Full' } ) {
 
 				Assert-VersionRequirement -RequiredVersion 12.2
 
 				$safeMember = Get-PASSafeMember -SafeName $SafeName -MemberName $MemberName
+
 				if ($null -ne $safeMember) {
 					Format-PutRequestObject -InputObject $safeMember -boundParameters $BoundParameters -ParametersToRemove safeNumber, memberId,
 					UserName, safeName, isExpiredMembershipEnable, memberName, memberType, safeUrlId, memberType, isPredefinedUser
@@ -252,7 +499,8 @@ function Set-PASSafeMember {
 				#Create URL for request
 				$URI = "$($psPASSession.BaseURI)/api/Safes/$($SafeName | Get-EscapedString)/Members/$($MemberName | Get-EscapedString)/"
 
-				If ($PSBoundParameters.ContainsKey('MembershipExpirationDate')) {
+				#Convert expiration date if it was passed as a parameter and passed value is not null
+				if (($PSBoundParameters.ContainsKey('MembershipExpirationDate')) -and ($null -ne $MembershipExpirationDate)) {
 
 					#Convert MembershipExpirationDate to string in Required format
 					$Date = Get-Date $MembershipExpirationDate | ConvertTo-UnixTime
@@ -262,8 +510,41 @@ function Set-PASSafeMember {
 
 				}
 
+				#Set expiration date in request body to null if negative value returned from existing safe member
+				#This ensures the update does not fail due to an out of range value
+				if ([int]$boundParameters['MembershipExpirationDate'] -lt 0) {
+
+					$boundParameters[('MembershipExpirationDate')] = $null
+
+				}
+
 				#Add permissions array to request in correct order
-				$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -Gen2
+				switch ($PSCmdlet.ParameterSetName) {
+
+					'Gen2' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -Gen2
+					}
+
+					'ConnectOnly' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -ConnectOnly
+					}
+
+					'ReadOnly' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -ReadOnly
+					}
+
+					'Approver' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -Approver
+					}
+
+					'AccountsManager' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -AccountsManager
+					}
+
+					'Full' {
+						$boundParameters['Permissions'] = $boundParameters | ConvertTo-SortedPermission -Full
+					}
+				}
 
 				#Create required request object
 				$body = $boundParameters | Get-PASParameter -ParametersToKeep $keysToKeep | ConvertTo-Json
@@ -279,7 +560,7 @@ function Set-PASSafeMember {
 			#Send request to webservice
 			$result = Invoke-PASRestMethod -Uri $URI -Method PUT -Body $Body
 
-			If ($null -ne $result) {
+			if ($null -ne $result) {
 
 				switch ($PSCmdlet.ParameterSetName) {
 
@@ -321,6 +602,6 @@ function Set-PASSafeMember {
 
 	}#process
 
-	END { }#end
+	end { }#end
 
 }

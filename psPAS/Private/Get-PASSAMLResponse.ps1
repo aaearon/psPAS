@@ -1,4 +1,4 @@
-Function Get-PASSAMLResponse {
+function Get-PASSAMLResponse {
 	<#
 .SYNOPSIS
 Get SAML Token for PAS SAML Auth
@@ -26,29 +26,65 @@ https://gist.github.com/infamousjoeg/b44faa299ec3de65bdd1d3b8474b0649
 		$URL
 	)
 
-	Process {
+	process {
 
-		Try {
+		try {
 
 			$Uri = "$URL/auth/saml/"
 
 			if ($PSCmdlet.ShouldProcess($Uri, 'SAML Auth')) {
 
-				$WebResponse = Invoke-WebRequest -Uri $Uri -MaximumRedirection 0 -ErrorAction SilentlyContinue -UseBasicParsing
+				#If Tls12 Security Protocol is available
+				if (([Net.SecurityProtocolType].GetEnumNames() -contains 'Tls12') -and
 
-				$SAMLResponse = Invoke-WebRequest -Uri $($WebResponse.links.href) -MaximumRedirection 1 -UseDefaultCredentials -UseBasicParsing
+					#And Tls12 is not already in use
+					(-not ([System.Net.ServicePointManager]::SecurityProtocol -match 'Tls12'))) {
 
-				If ($SAMLResponse.InputFields[0].name -eq 'SAMLResponse') {
+					[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+				}
+
+				$Request = @{}
+
+				#Use TLS 1.2
+				if (Test-IsCoreCLR) {
+
+					$Request.Add('SslProtocol', 'TLS12')
+
+				}
+				$Request['Uri'] = $Uri
+				$Request['MaximumRedirection'] = 0
+				$Request['ErrorAction'] = 'SilentlyContinue'
+				$Request['UseBasicParsing'] = $true
+
+				$WebResponse = Invoke-WebRequest @Request
+
+				$Request = @{}
+
+				#Use TLS 1.2
+				if (Test-IsCoreCLR) {
+
+					$Request.Add('SslProtocol', 'TLS12')
+
+				}
+				$Request['Uri'] = $($WebResponse.links.href)
+				$Request['MaximumRedirection'] = 1
+				$Request['UseDefaultCredentials'] = $true
+				$Request['UseBasicParsing'] = $true
+
+				$SAMLResponse = Invoke-WebRequest @Request
+
+				if ($SAMLResponse.InputFields[0].name -eq 'SAMLResponse') {
 
 					$SAMLResponse.InputFields[0].value
 
-				} Else { Throw }
+				} else { throw }
 
 			}
 
 		}
 
-		Catch { Throw 'Failed to get SAMLResponse' }
+		catch { throw 'Failed to get SAMLResponse' }
 
 	}
 

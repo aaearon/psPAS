@@ -112,7 +112,7 @@
 		[string]$ContentType
 	)
 
-	Begin {
+	begin {
 
 		#Set defaults for all function calls
 		$ProgressPreference = 'SilentlyContinue'
@@ -144,7 +144,7 @@
 
 		}
 
-		Switch ($PSBoundParameters.ContainsKey('SkipCertificateCheck')) {
+		switch ($PSBoundParameters.ContainsKey('SkipCertificateCheck')) {
 
 			$true {
 
@@ -179,7 +179,7 @@
 
 				#SkipCertificateCheck Not Declared
 				#SSL Validation Bypass Previously Requested
-				If ($Script:SkipCertificateCheck) {
+				if ($Script:SkipCertificateCheck) {
 
 					#PWSH Zone
 					if (Test-IsCoreCLR) {
@@ -208,12 +208,15 @@
 
 	}
 
-	Process {
+	process {
 
-		#Show sanitised request body if in debug mode
-		If ([System.Management.Automation.ActionPreference]::SilentlyContinue -ne $DebugPreference) {
+		#Show URI, Method & sanitised request body if in debug mode
+		if ([System.Management.Automation.ActionPreference]::SilentlyContinue -ne $DebugPreference) {
 
-			If (($PSBoundParameters.ContainsKey('Body')) -and (($PSBoundParameters['Body']).GetType().Name -eq 'String')) {
+			Write-Debug "[Uri] $URI"
+			Write-Debug "[Method] $Method"
+
+			if (($PSBoundParameters.ContainsKey('Body')) -and (($PSBoundParameters['Body']).GetType().Name -eq 'String')) {
 
 				Write-Debug "[Body] $(Hide-SecretValue -InputValue $Body)"
 
@@ -248,11 +251,11 @@
 			$psPASSession.LastErrorTime = Get-Date
 
 			#Privilege Cloud Shared Services Error Handling
-			If ($PSitem.TargetObject.RequestUri.Host -match 'cyberark.cloud') {
+			if ($PSitem.TargetObject.RequestUri.Host -match 'cyberark.cloud') {
 
 				$ResponseException = $($PSItem.ErrorDetails.Message)
 
-				If ($null -ne $($ResponseException)) {
+				if ($null -ne $($ResponseException)) {
 
 					try {
 
@@ -299,7 +302,7 @@
 			}
 
 			#Original Flavour Error Handling
-			Else {
+			else {
 
 				$ErrorID = $null
 				$StatusCode = $($PSItem.Exception.Response).StatusCode.value__
@@ -316,14 +319,14 @@
 
 					throw $PSItem
 
-				} Else {
+				} else {
 
-					If (-not($StatusCode)) {
+					if (-not($StatusCode)) {
 
 						#Generic failure message if no status code/response
 						$ErrorMessage = "Error contacting $($PSItem.TargetObject.RequestUri.AbsoluteUri)"
 
-					} ElseIf ($ErrorDetails) {
+					} elseif ($ErrorDetails) {
 
 						try {
 
@@ -339,12 +342,26 @@
 							#Inner error details are present
 							if ($Response.Details) {
 
-								#Join Inner Error Text to Error Message
-								$ErrorMessage = $ErrorMessage, $(($Response.Details | Select-Object -ExpandProperty ErrorMessage) -join ', ') -join ': '
+								if ($Response.Details -is [Array]) {
 
-								#Join Inner Error Codes to ErrorID
-								$ErrorID = $ErrorID, $(($Response.Details | Select-Object -ExpandProperty ErrorCode) -join ',') -join ','
+									#array of details is returned for operations which return collections
+									$detailText = $Response.Details | ForEach-Object {
+										$obj = $_
+										#Join each array element into a single string
+										$props = $obj | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
+										($props | ForEach-Object { "$_=$($obj.$_)" }) -join '; '
+									}
 
+									#Join the array element details to the Error Message
+									$ErrorMessage = $ErrorMessage, $($detailText -join "`n") -join "`n"
+
+								} else {
+									#Join Inner Error Text to Error Message
+									$ErrorMessage = $ErrorMessage, $(($Response.Details | Select-Object -ExpandProperty ErrorMessage) -join ', ') -join ': '
+
+									#Join Inner Error Codes to ErrorID
+									$ErrorID = $ErrorID, $(($Response.Details | Select-Object -ExpandProperty ErrorCode) -join ',') -join ','
+								}
 							}
 
 						} catch {
@@ -384,7 +401,7 @@
 			$psPASSession.LastCommandTime = Get-Date
 
 			#If Session Variable passed as argument
-			If ($PSCmdlet.ParameterSetName -eq 'SessionVariable') {
+			if ($PSCmdlet.ParameterSetName -eq 'SessionVariable') {
 
 				#Make the WebSession available in the module scope
 				$psPASSession.WebSession = $(Get-Variable $(Get-Variable sessionVariable).Value).Value
@@ -395,7 +412,7 @@
 			if ($?) {
 
 				#Status code indicates success
-				If ($APIResponse.StatusCode -match '^20\d$') {
+				if ($APIResponse.StatusCode -match '^20\d$') {
 
 					#Pass APIResponse to Get-PASResponse
 					$APIResponse | Get-PASResponse
@@ -408,6 +425,6 @@
 
 	}
 
-	End { }
+	end { }
 
 }

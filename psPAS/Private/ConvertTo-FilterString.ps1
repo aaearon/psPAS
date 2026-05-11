@@ -1,4 +1,4 @@
-Function ConvertTo-FilterString {
+function ConvertTo-FilterString {
 	<#
 .SYNOPSIS
 Converts Hashtable Key-Value pairs to a string for use as a Filter value
@@ -14,6 +14,9 @@ Hashtable containing parameter names and values to include in output
 
 .PARAMETER QuoteValue
 Specify this switch to enclose the value of a key value pair in quotes when converting to a filter string
+
+.PARAMETER ExternalVersion
+The API version to determine how to handle quotes
 
 .EXAMPLE
 $input | ConvertTo-FilterString
@@ -55,16 +58,25 @@ Encloses value of the key/value pair in quotes.
 			Mandatory = $false,
 			ValueFromPipeline = $false
 		)]
-		[switch]$QuoteValue
+		[switch]$QuoteValue,
+
+		[parameter(
+			Mandatory = $false,
+			ValueFromPipeline = $false
+		)]
+		[string]$LogicalOperator
 	)
 
-	Begin {
+	begin {
+
+		# Get version from the session
+		$ExternalVersion = $script:psPASSession.ExternalVersion
 
 	}
 
-	Process {
+	process {
 
-		If ($Parameters) {
+		if ($Parameters) {
 
 			$Parameters.Keys | ForEach-Object {
 
@@ -89,7 +101,14 @@ Encloses value of the key/value pair in quotes.
 
 						$value = $($Parameters[$PSItem])
 
-						if ($QuoteValue) { $value = """$value""" }
+						# Determine operator based on API version
+						if ($ExternalVersion -and $ExternalVersion -ge [version]'14.6') {
+							# API 14.6+ uses automatic quoting for values with spaces
+							if ($QuoteValue -or ($value -match '\s')) { $value = """$value""" }
+						} else {
+							# API 14.4 and below only quotes when explicitly requested
+							if ($QuoteValue) { $value = """$value""" }
+						}
 
 						$null = $FilterList.Add("$PSItem eq $value")
 
@@ -98,9 +117,14 @@ Encloses value of the key/value pair in quotes.
 				}
 			} {
 
-				If ($FilterList.count -gt 0) {
+				if ($FilterList.count -gt 0) {
 
-					@{'filter' = $FilterList -join ' AND ' }
+					# Only use LogicalOperator for API 14.6+, default to AND for older versions
+					if ($ExternalVersion -and $ExternalVersion -ge [version]'14.6') {
+						@{'filter' = $FilterList -join " $LogicalOperator " }
+					} else {
+						@{'filter' = $FilterList -join ' AND ' }
+					}
 
 				}
 			}
@@ -109,6 +133,6 @@ Encloses value of the key/value pair in quotes.
 
 	}
 
-	End { }
+	end { }
 
 }

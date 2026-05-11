@@ -1,5 +1,5 @@
 # .ExternalHelp psPAS-help.xml
-Function Add-PASPTAExcludedTarget {
+function Add-PASPTAIncludedTarget {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param(
         [parameter(
@@ -9,20 +9,20 @@ Function Add-PASPTAExcludedTarget {
         [string]$cidr
     )
 
-    BEGIN {
+    begin {
         Assert-VersionRequirement -SelfHosted
         Assert-VersionRequirement -RequiredVersion 14.0
     }#begin
 
-    PROCESS {
+    process {
 
         #Create request URL
-        $URI = "$($psPASSession.BaseURI)/api/pta/API/Administration/properties/CidrExclusionList"
+        $URI = "$($psPASSession.BaseURI)/api/pta/API/Administration/properties/CidrInclusionList"
 
         #Create body of request
         $Body = $PSBoundParameters | Get-PASParameter | ConvertTo-Json
 
-        if ($PSCmdlet.ShouldProcess($cidr, 'Add PTA Excluded Monitored Target')) {
+        if ($PSCmdlet.ShouldProcess($cidr, 'Add PTA Included Monitored Target')) {
 
             #send request to web service
             Invoke-PASRestMethod -Uri $URI -Method PATCH -Body $Body
@@ -31,6 +31,6 @@ Function Add-PASPTAExcludedTarget {
 
     }#process
 
-    END { }#end
+    end { }#end
 
 }
